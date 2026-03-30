@@ -2,12 +2,13 @@ from utils.Tile import Tile
 import random
 
 class AgenteReativoSimples:
-    def __init__(self, x=0, y=0):
+    def __init__(self, ambiente, x=0, y=0):
         self.estado_atual = None
         self.x = x
         self.y = y
+        self.ambiente = ambiente
 
-    def movimentar(self, ambiente):
+    def movimentar(self):
         movimentos_possiveis = [
             (0, -1), (0, 1), (-1, 0), (1, 0),
             (-1, -1), (1, -1), (-1, 1), (1, 1)
@@ -18,7 +19,7 @@ class AgenteReativoSimples:
             novo_x = self.x + dx
             novo_y = self.y + dy
 
-            if ((0 <= novo_x < ambiente.grid_size) and (0 <= novo_y < ambiente.grid_size)):
+            if ((0 <= novo_x < self.ambiente.grid_size) and (0 <= novo_y < self.ambiente.grid_size)):
                 movimentos_validos.append((dx, dy))
 
         if movimentos_validos:
@@ -27,8 +28,8 @@ class AgenteReativoSimples:
             self.y += dy
         
 
-    def perceber(self, ambiente):
-        self.estado_atual = ambiente.obter_estado(self.x, self.y)
+    def perceber(self):
+        self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
 
 
 
