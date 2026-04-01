@@ -12,6 +12,9 @@ class Visualizacao:
         self.largura_borda = 4
         self.running = False
         self.tela = None
+        self.posicoes_agentes = {} # Guarda as posições x,y de animação de cada agente ativo
+        self.velocidade_animacao = 0.25 # Controle de velocidade (0.1 a 1.0)
+        self.clock = pygame.time.Clock()
 
     def iniciar(self):
         pygame.init()
@@ -52,28 +55,43 @@ class Visualizacao:
             
         tam_celula_x = self.largura / ambiente.grid_size
         tam_celula_y = self.altura / ambiente.grid_size
-        raio = int(min(tam_celula_x, tam_celula_y) / 3) # O raio deve ser um pouco menor que a metade da celula
-        
+        raio = int(min(tam_celula_x, tam_celula_y) / 3)
+
+        # Função auxiliar de interpolação visual ("Tweening")
+        def interpolar(agente):
+            alvo_x, alvo_y = agente.x, agente.y
+            if id(agente) not in self.posicoes_agentes:
+                self.posicoes_agentes[id(agente)] = [alvo_x, alvo_y]
+            
+            curr_x, curr_y = self.posicoes_agentes[id(agente)]
+            novo_x = curr_x + (alvo_x - curr_x) * self.velocidade_animacao
+            novo_y = curr_y + (alvo_y - curr_y) * self.velocidade_animacao
+            
+            if abs(alvo_x - novo_x) < 0.05: novo_x = alvo_x
+            if abs(alvo_y - novo_y) < 0.05: novo_y = alvo_y
+            
+            self.posicoes_agentes[id(agente)] = [novo_x, novo_y]
+            
+            # Retorna as coordenadas centradas na tela para o desenho
+            return int(novo_x * tam_celula_x + tam_celula_x / 2), int(novo_y * tam_celula_y + tam_celula_y / 2)
+
         # Desenhar Drone
         if drone:
-            centro_x = int(drone.x * tam_celula_x + tam_celula_x / 2)
-            centro_y = int(drone.y * tam_celula_y + tam_celula_y / 2)
+            centro_x, centro_y = interpolar(drone)
             # Círculo cinza claro para o drone
             pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
             pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenhar Bombeiro
         if bombeiro:
-            centro_x = int(bombeiro.x * tam_celula_x + tam_celula_x / 2)
-            centro_y = int(bombeiro.y * tam_celula_y + tam_celula_y / 2)
+            centro_x, centro_y = interpolar(bombeiro)
             # Círculo azul escuro para o bombeiro
             pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
             pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenhar Socorrista Sequencial
         if socorrista_seq:
-            centro_x = int(socorrista_seq.x * tam_celula_x + tam_celula_x / 2)
-            centro_y = int(socorrista_seq.y * tam_celula_y + tam_celula_y / 2)
+            centro_x, centro_y = interpolar(socorrista_seq)
             # Triângulo rosa
             pontos = [
                 (centro_x, centro_y - raio),
@@ -85,8 +103,7 @@ class Visualizacao:
 
         # Desenhar Socorrista Otimizador
         if socorrista_otm:
-            centro_x = int(socorrista_otm.x * tam_celula_x + tam_celula_x / 2)
-            centro_y = int(socorrista_otm.y * tam_celula_y + tam_celula_y / 2)
+            centro_x, centro_y = interpolar(socorrista_otm)
             # Triângulo branco
             pontos = [
                 (centro_x, centro_y - raio),

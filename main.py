@@ -7,7 +7,7 @@ from agentes.AgenteBaseadoEmObjetivo import AgenteBaseadoEmObjetivo
 from agentes.AgenteBaseadoEmUtilidade import AgenteBaseadoEmUtilidade
 from agentes.AgenteReativoBaseadoEmModelo import AgenteReativoBaseadoEmModelo
 from Interface.visualizacao import Visualizacao
-from time import sleep
+from time import time
 
 def main():
     ambiente = Ambiente(grid_size = 10)
@@ -32,11 +32,7 @@ def main():
     passos = 0
     intervalo_geracao_eventos = 2
 
-
     while True:
-
-        if not visualizacao.atualizar(ambiente, drone=drone, bombeiro=bombeiro, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
-            break
 
         if passos % intervalo_geracao_eventos == 0:
             #50% de chance de gerar fogo ou vitima
@@ -72,7 +68,13 @@ def main():
         socorrista_otm.mover()
 
 
-        sleep(1)
+        # Atualiza a interface graficamente de forma contínua durante 1 segundo
+        tempo_inicio = time()
+        while time() - tempo_inicio < 1.0:
+            if not visualizacao.atualizar(ambiente, drone=drone, bombeiro=bombeiro, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
+                return
+            visualizacao.clock.tick(60) # Roda a interface a 60 FPS suavizando a animação
+
         passos += 1
 
 
