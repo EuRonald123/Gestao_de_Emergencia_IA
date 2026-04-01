@@ -13,7 +13,7 @@ class Visualizacao:
         self.running = False
         self.tela = None
         self.posicoes_agentes = {} # Guarda as posições x,y de animação de cada agente ativo
-        self.velocidade_animacao = 0.25 # Controle de velocidade (0.1 a 1.0)
+        self.velocidade_animacao = 0.1 # Controle de velocidade (0.1 a 1.0)
         self.clock = pygame.time.Clock()
 
     def iniciar(self):
@@ -43,10 +43,10 @@ class Visualizacao:
                 elif estado == Tile.VITIMA:
                     pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
 
-                # Desenhar as linhas da grade
+                # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
 
-        # Desenhar borda
+        # Borda externa
         pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura, self.altura), self.largura_borda)
 
     def desenhar_agentes(self, ambiente, drone=None, bombeiro=None, socorrista_seq=None, socorrista_otm=None):
@@ -72,17 +72,17 @@ class Visualizacao:
             
             self.posicoes_agentes[id(agente)] = [novo_x, novo_y]
             
-            # Retorna as coordenadas centradas na tela para o desenho
+            # Retorna as coordenadas para atualizar o desenho
             return int(novo_x * tam_celula_x + tam_celula_x / 2), int(novo_y * tam_celula_y + tam_celula_y / 2)
 
-        # Desenhar Drone
+        # Desenha o drone
         if drone:
             centro_x, centro_y = interpolar(drone)
             # Círculo cinza claro para o drone
             pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
             pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
-        # Desenhar Bombeiro
+        # Desenha o bombeeiro
         if bombeiro:
             centro_x, centro_y = interpolar(bombeiro)
             # Círculo azul escuro para o bombeiro
@@ -92,7 +92,7 @@ class Visualizacao:
         # Desenhar Socorrista Sequencial
         if socorrista_seq:
             centro_x, centro_y = interpolar(socorrista_seq)
-            # Triângulo rosa
+            # usei um tringulo de cor rosa 
             pontos = [
                 (centro_x, centro_y - raio),
                 (centro_x - raio, centro_y + raio),
@@ -104,7 +104,7 @@ class Visualizacao:
         # Desenhar Socorrista Otimizador
         if socorrista_otm:
             centro_x, centro_y = interpolar(socorrista_otm)
-            # Triângulo branco
+            # triangulo branco socorrista otimizador
             pontos = [
                 (centro_x, centro_y - raio),
                 (centro_x - raio, centro_y + raio),
