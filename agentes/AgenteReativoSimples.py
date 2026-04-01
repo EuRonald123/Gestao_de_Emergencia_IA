@@ -6,7 +6,23 @@ class AgenteReativoSimples:
         self.estado_atual = None
         self.x = x
         self.y = y
-        self.ambiente = ambiente
+        self.ambiente = ambiente  
+
+    def perceber(self):
+        self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
+
+    #Atualizado samerda
+    #acreditoq ue nao precise dassas strings de retorno, deixei apenas para a fase de testes e enquanto nao tiver interface grafica
+    def agir(self): 
+        if self.estado_atual == Tile.FOGO:
+            self.bdi.registrar_evento(Tile.FOGO, (self.x, self.y))
+            return 'reportar fogo'
+        elif self.estado_atual == Tile.VITIMA:
+            self.bdi.registrar_evento(Tile.VITIMA, (self.x, self.y))
+            return 'reportar vítima'
+        else:
+            return 'explorar'
+        
 
     def movimentar(self):
         movimentos_possiveis = [
@@ -26,23 +42,3 @@ class AgenteReativoSimples:
             dx, dy = random.choice(movimentos_validos)
             self.x += dx
             self.y += dy
-        
-
-    def perceber(self):
-        self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
-
-
-
-    #Tenho que alterar essa função para ficar de acordo com o que o trabalho ta pedindo
-    def agir(self):
-        if self.estado_atual == Tile.FOGO:
-            #envia menssagem para o agente BDI
-            return 'Apagar Fogo'
-        elif self.estado_atual == Tile.VAZIO:
-            #envia menssagem para o agente BDI
-            return 'Proximo local'
-        elif self.estado_atual == Tile.VITIMA:
-            #envia menssagem para o agente BDI
-            return 'Resgatar Vitima'
-        else:
-            return 'ação desconhecida'

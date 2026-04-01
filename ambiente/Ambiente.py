@@ -31,11 +31,12 @@ class Ambiente:
         return vazias
 
 
-    '''nas funcoes de gerar fogoe  gerar vitima eu coloquei um teto maximo, porem, acredito que seja melhor deixar sem esse teto, vai ser configurável de qualquer maneira.'''
+    '''nas funcoes de gerar fogoe  gerar vitima eu coloquei um teto maximo,
+    porem, acredito que seja melhor deixar sem esse teto, vai ser configurável de qualquer maneira.'''
     def gerar_fogos(self, max_fogos = None):
         celulas_vazias = self.calc_celulas_vazias()
         if celulas_vazias == None:
-            print("Não há mais espaço para gerar fogos ou vitimas.")
+            print("Não há mais espaço para gerar fogos ou vitimas.") #remover depois ;-;
             return False
 
         if max_fogos is not None and self.fogos_ativos >= max_fogos:
@@ -45,13 +46,13 @@ class Ambiente:
         self.matriz[x][y] = Tile.FOGO
         self.fogos_ativos += 1
 
-        print("__Fogo gerado na posição ({}, {})".format(x, y))
+        print("__Fogo gerado na posição ({}, {})".format(x, y)) #remover depois
         return True
 
     def gerar_vitimas(self, max_vitimas = None):
         celulas_vazias = self.calc_celulas_vazias()
         if celulas_vazias == None:
-            print("Não há mais espaço para gerar fogos ou vitimas.")
+            print("Não há mais espaço para gerar fogos ou vitimas.") #esse printe é para debug e testes ininciais, vou remover depois kk
             return False
 
         if max_vitimas is not None and self.vitimas_ativas >= max_vitimas:
@@ -61,7 +62,7 @@ class Ambiente:
         self.matriz[x][y] = Tile.VITIMA
         self.vitimas_ativas += 1
 
-        print("__Vitima gerada na posição ({}, {})".format(x, y))
+        print("__Vitima gerada na posição ({}, {})".format(x, y)) #remover depois
         return True
 
 
@@ -85,15 +86,15 @@ class Ambiente:
     def obter_estado(self, x, y):
         #retorna o estado do ambiente na posição x, y
         return self.matriz[x][y]
-    
 
-    #essa função vai sair, vou deixar só por enquanto.
-    def atualizar_estado(self, acao, x, y):
-        if acao == 'Apagar Fogo':
-            self.apagar_fogo(x, y)
-        elif acao == 'Proximo local':
-            self.matriz[x][y] = Tile.VAZIO
-        elif acao == 'Resgatar Vitima':
-            self.resgatar_vitima(x, y)
+
+    def obter_quadrante(self, x, y):
+        meio = self.grid_size // 2
+        if x < meio and y < meio:
+            return 1   # Q1 
+        elif x < meio and y >= meio:
+            return 2   # Q2 
+        elif x >= meio and y < meio:
+            return 3   # Q3 
         else:
-            pass
+            return 4   # Q4 
