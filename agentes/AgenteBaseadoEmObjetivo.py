@@ -38,8 +38,11 @@ class AgenteBaseadoEmObjetivo:
         if self.estado == 'no_alvo':
             alvo = self.lista_vitimas[self.indice_atual]
             if self.ambiente.resgatar_vitima(alvo[0], alvo[1]):
-                self.indice_atual += 1
-                self.bdi.registrar_resgate(self, alvo)
+                vitima = self.lista_vitimas.pop(self.indice_atual)
+                #self.indice_atual += 1
+                self.bdi.registrar_resgate(self, vitima)
+                if self.indice_atual >= len(self.lista_vitimas):
+                    self.indice_atual = 0
 
     def mover(self):
         if self.estado != 'movendo':
