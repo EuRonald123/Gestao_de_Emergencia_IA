@@ -1,14 +1,19 @@
 import random
+import pygame
 from ambiente.Ambiente import Ambiente
 from agentes.AgenteReativoSimples import AgenteReativoSimples
 from agentes.AgenteBDI import AgenteBDI
 from agentes.AgenteBaseadoEmObjetivo import AgenteBaseadoEmObjetivo
 from agentes.AgenteBaseadoEmUtilidade import AgenteBaseadoEmUtilidade
 from agentes.AgenteReativoBaseadoEmModelo import AgenteReativoBaseadoEmModelo
+from Interface.visualizacao import Visualizacao
 from time import sleep
 
 def main():
-    ambiente = Ambiente(grid_size = 5)
+    ambiente = Ambiente(grid_size = 10)
+
+    visualizacao = Visualizacao(ambiente=ambiente)
+    visualizacao.iniciar()
 
     #inicilizando os agentes
     bombeiro = AgenteReativoBaseadoEmModelo(ambiente, None, quadrante='Q1', x=0, y=0)
@@ -29,6 +34,10 @@ def main():
 
 
     while True:
+
+        if not visualizacao.atualizar(ambiente, drone=drone, bombeiro=bombeiro, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
+            break
+
         if passos % intervalo_geracao_eventos == 0:
             #50% de chance de gerar fogo ou vitima
             if random.random() < 0.5:
@@ -63,7 +72,7 @@ def main():
         socorrista_otm.mover()
 
 
-        sleep(2)
+        sleep(1)
         passos += 1
 
 

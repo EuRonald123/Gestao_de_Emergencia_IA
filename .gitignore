@@ -2,3 +2,4 @@ docs/
 *.pdf
 *.docx
 __pycache__
+.venv/
