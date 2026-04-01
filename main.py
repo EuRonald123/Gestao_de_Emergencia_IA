@@ -25,7 +25,7 @@ def main():
     drone = AgenteReativoSimples(ambiente = ambiente, AgenteBDI = bdi)
 
     passos = 0
-    intervalo_geracao_eventos = 5
+    intervalo_geracao_eventos = 2
 
 
     while True:

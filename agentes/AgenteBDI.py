@@ -25,12 +25,14 @@ class AgenteBDI:
         self.lista_resgate_sequencial = []
         self.lista_resgate_otimizador = []
         self.vitimas_designadas = set()
+        self.fila_incendios = []
 
 
     #metodo pra receber as informações que o drone coletou
     def registrar_evento(self, tipo_evento, posicao):
         if tipo_evento == Tile.FOGO:
             self.crencas["fogos"].add(posicao)
+            self._enfileirar_incendio(posicao)
         elif tipo_evento == Tile.VITIMA:
             self.crencas["vitimas"].add(posicao)
         self.processar_crencas()
@@ -41,39 +43,31 @@ class AgenteBDI:
         self.processar_resgates()
 
     def processar_incendios(self):
-        #Aqui é para atribuir os bombeiros para os incendios de acordo com o quadrante
-        fogos = list(self.crencas["fogos"])
-        if not fogos:
+        if not self.fila_incendios:
             return
 
-        # Agrupar fogos por quadrante
-        fogos_por_quadrante = {'Q1': [], 'Q2': [], 'Q3': [], 'Q4': []}
-        for fogo in fogos:
-            q = self.ambiente.obter_quadrante(x = fogo[0], y = fogo[1])
-            fogos_por_quadrante[q].append(fogo)
+        pendentes_por_quadrante = {'Q1': [], 'Q2': [], 'Q3': [], 'Q4': []}
+        for fogo in self.fila_incendios:
+            q = self.ambiente.obter_quadrante(x=fogo[0], y=fogo[1])
+            pendentes_por_quadrante[q].append(fogo)
 
-        # Primeiro, atribui bombeiros aos fogos do seu próprio quadrante
-        bombeiros_disponiveis = []
-        #pega todos os bombeiros disponiveis
-        for b in self.bombeiros:
-            if not self.bombeiro_ocupado[b]:
-                bombeiros_disponiveis.append(b)
-            
+        bombeiros_disponiveis = [b for b in self.bombeiros if not self.bombeiro_ocupado[b]]
+        if not bombeiros_disponiveis:
+            return
+
+        # Prioriza incêndios do mesmo quadrante
+        ainda_disponiveis = []
         for bombeiro in bombeiros_disponiveis:
-            #ainda tenho que implementar essa funcao de obter quadrante do bombeiro, mas isso é coisa simples
             q = bombeiro.quadrante
-            if fogos_por_quadrante[q]:
-                fogo = fogos_por_quadrante[q].pop(0)
+            if pendentes_por_quadrante[q]:
+                fogo = pendentes_por_quadrante[q].pop(0)
                 self.atribuir_bombeiro(bombeiro, fogo)
+            else:
+                ainda_disponiveis.append(bombeiro)
 
-        # Depois, se ainda há fogos e bombeiros disponíveis, realocar
-        bombeiros_disponiveis = []
-        for b in self.bombeiros:
-            if not self.bombeiro_ocupado[b]:
-                bombeiros_disponiveis.append(b)
-
-        for bombeiro in bombeiros_disponiveis:
-            for q, lista in fogos_por_quadrante.items():
+        # Em seguida, distribui quaisquer incêndios restantes
+        for bombeiro in ainda_disponiveis:
+            for lista in pendentes_por_quadrante.values():
                 if lista:
                     fogo = lista.pop(0)
                     self.atribuir_bombeiro(bombeiro, fogo)
@@ -84,6 +78,7 @@ class AgenteBDI:
         self.bombeiro_ocupado[bombeiro] = True
         self.planos_incendio[bombeiro] = fogo
         bombeiro.receber_ordem(fogo)
+        self._remover_fogo_da_fila(fogo)
 
     def processar_resgates(self):
         vitimas = list(self.crencas["vitimas"])
@@ -104,6 +99,7 @@ class AgenteBDI:
         if bombeiro in self.planos_incendio:
             fogo = self.planos_incendio.pop(bombeiro)
             self.crencas["fogos"].discard(fogo)
+            self._remover_fogo_da_fila(fogo)
         self.processar_crencas()
 
     def notificar_socorrista_concluiu(self, socorrista):
@@ -160,3 +156,11 @@ class AgenteBDI:
         else:
             self.socorrista_opt_ocupado = True
             self.socorrista_otimizador.receber_lista(list(self.lista_resgate_otimizador))
+
+    def _enfileirar_incendio(self, fogo):
+        if fogo not in self.fila_incendios and fogo not in self.planos_incendio.values():
+            self.fila_incendios.append(fogo)
+
+    def _remover_fogo_da_fila(self, fogo):
+        if fogo in self.fila_incendios:
+            self.fila_incendios.remove(fogo)
