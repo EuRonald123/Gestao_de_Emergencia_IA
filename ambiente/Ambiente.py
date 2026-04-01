@@ -70,6 +70,7 @@ class Ambiente:
         if self.matriz[x][y] == Tile.FOGO:
             self.matriz[x][y] = Tile.VAZIO
             self.fogos_ativos -= 1
+            print("__Fogo apagado na posição ({}, {})".format(x, y)) #remover depois
             return True
         
         return False
@@ -78,6 +79,7 @@ class Ambiente:
         if self.matriz[x][y] == Tile.VITIMA:
             self.matriz[x][y] = Tile.VAZIO
             self.vitimas_ativas -= 1
+            print("__Vitima resgatada na posição ({}, {})".format(x, y)) #remover depois
             return True
         
         return False
@@ -91,10 +93,10 @@ class Ambiente:
     def obter_quadrante(self, x, y):
         meio = self.grid_size // 2
         if x < meio and y < meio:
-            return 1   # Q1 
+            return 'Q1'   # Q1 
         elif x < meio and y >= meio:
-            return 2   # Q2 
+            return 'Q2'   # Q2 
         elif x >= meio and y < meio:
-            return 3   # Q3 
+            return 'Q3'   # Q3 
         else:
-            return 4   # Q4 
+            return 'Q4'   # Q4 

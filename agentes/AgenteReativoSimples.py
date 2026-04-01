@@ -2,12 +2,12 @@ from utils.Tile import Tile
 import random
 
 class AgenteReativoSimples:
-    def __init__(self, ambiente,AgentBDI, x=0, y=0):
+    def __init__(self, ambiente,AgenteBDI, x=0, y=0):
         self.estado_atual = None
         self.x = x
         self.y = y
         self.ambiente = ambiente
-        self.bdi = AgentBDI
+        self.bdi = AgenteBDI
 
     def perceber(self):
         self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
