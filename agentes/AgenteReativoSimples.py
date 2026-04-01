@@ -2,11 +2,12 @@ from utils.Tile import Tile
 import random
 
 class AgenteReativoSimples:
-    def __init__(self, ambiente, x=0, y=0):
+    def __init__(self, ambiente,AgentBDI, x=0, y=0):
         self.estado_atual = None
         self.x = x
         self.y = y
-        self.ambiente = ambiente  
+        self.ambiente = ambiente
+        self.bdi = AgentBDI
 
     def perceber(self):
         self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
@@ -24,7 +25,7 @@ class AgenteReativoSimples:
             return 'explorar'
         
 
-    def movimentar(self):
+    def mover(self):
         movimentos_possiveis = [
             (0, -1), (0, 1), (-1, 0), (1, 0),
             (-1, -1), (1, -1), (-1, 1), (1, 1)

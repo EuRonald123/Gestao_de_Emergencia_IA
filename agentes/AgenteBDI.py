@@ -24,6 +24,7 @@ class AgenteBDI:
         #Vai pegar a lista de vitimas e dividir em duas parte, uma pra cada agente
         self.lista_resgate_sequencial = []
         self.lista_resgate_otimizador = []
+        self.vitimas_designadas = set()
 
 
     #metodo pra receber as informações que o drone coletou
@@ -85,22 +86,17 @@ class AgenteBDI:
         bombeiro.receber_ordem(fogo)
 
     def processar_resgates(self):
-        #Plano de Resgate é dividir vítimas entre socorristas.
         vitimas = list(self.crencas["vitimas"])
         if not vitimas:
             return
 
-        if not self.socorrista_seq_ocupado and not self.socorrista_opt_ocupado:
-            #metade para cada mas pode ser numeros impares etc
-            meio = len(vitimas) // 2
-            lista_seq = vitimas[:meio]
-            lista_opt = vitimas[meio:]
-            self.lista_resgate_sequencial = lista_seq
-            self.lista_resgate_otimizador = lista_opt
-            self.socorrista_seq_ocupado = True
-            self.socorrista_opt_ocupado = True
-            self.socorrista_sequencial.receber_lista(lista_seq)
-            self.socorrista_otimizador.receber_lista(lista_opt)
+        novas_vitimas = [v for v in vitimas if v not in self.vitimas_designadas]
+        for vitima in novas_vitimas:
+            destino = self._escolher_socorrista()
+            if destino == 'seq':
+                self._designar_para_sequencial(vitima)
+            else:
+                self._designar_para_otimizador(vitima)
 
     def notificar_bombeiro_concluiu(self, bombeiro):
         #Chama quando um bombeiro termina de apagar o fogo.
@@ -120,3 +116,47 @@ class AgenteBDI:
             self.lista_resgate_otimizador = []
 
         self.processar_crencas()
+
+    def registrar_resgate(self, socorrista, vitima):
+        self.crencas["vitimas"].discard(vitima)
+        self.vitimas_designadas.discard(vitima)
+
+        if socorrista == self.socorrista_sequencial:
+            if vitima in self.lista_resgate_sequencial:
+                self.lista_resgate_sequencial.remove(vitima)
+            if not self.lista_resgate_sequencial:
+                self.socorrista_seq_ocupado = False
+        elif socorrista == self.socorrista_otimizador:
+            if vitima in self.lista_resgate_otimizador:
+                self.lista_resgate_otimizador.remove(vitima)
+            if not self.lista_resgate_otimizador:
+                self.socorrista_opt_ocupado = False
+
+        self.processar_crencas()
+
+    def _escolher_socorrista(self):
+        if not self.socorrista_seq_ocupado:
+            return 'seq'
+        if not self.socorrista_opt_ocupado:
+            return 'opt'
+        if len(self.lista_resgate_sequencial) <= len(self.lista_resgate_otimizador):
+            return 'seq'
+        return 'opt'
+
+    def _designar_para_sequencial(self, vitima):
+        self.lista_resgate_sequencial.append(vitima)
+        self.vitimas_designadas.add(vitima)
+        if self.socorrista_seq_ocupado:
+            self.socorrista_sequencial.adicionar_vitima(vitima)
+        else:
+            self.socorrista_seq_ocupado = True
+            self.socorrista_sequencial.receber_lista(list(self.lista_resgate_sequencial))
+
+    def _designar_para_otimizador(self, vitima):
+        self.lista_resgate_otimizador.append(vitima)
+        self.vitimas_designadas.add(vitima)
+        if self.socorrista_opt_ocupado:
+            self.socorrista_otimizador.adicionar_vitima(vitima)
+        else:
+            self.socorrista_opt_ocupado = True
+            self.socorrista_otimizador.receber_lista(list(self.lista_resgate_otimizador))

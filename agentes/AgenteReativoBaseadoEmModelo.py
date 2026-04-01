@@ -1,5 +1,5 @@
 # agentes/Bombeiro.py (novo)
-class Bombeiro:
+class AgenteReativoBaseadoEmModelo:
     def __init__(self, ambiente, bdi, quadrante, x, y):
         self.ambiente = ambiente
         self.bdi = bdi
@@ -33,7 +33,7 @@ class Bombeiro:
                 self.bdi.notificar_bombeiro_concluiu(self)
 
     #movimento manhattan
-    def movimentar(self):
+    def mover(self):
         if self.estado != 'movendo':
             return
         dx = 0
