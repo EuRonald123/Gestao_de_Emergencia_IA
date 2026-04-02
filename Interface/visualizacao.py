@@ -49,7 +49,7 @@ class Visualizacao:
         # Borda externa
         pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura, self.altura), self.largura_borda)
 
-    def desenhar_agentes(self, ambiente, drone=None, bombeiro=None, socorrista_seq=None, socorrista_otm=None):
+    def desenhar_agentes(self, ambiente, drone=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if self.tela is None:
             return
             
@@ -82,12 +82,13 @@ class Visualizacao:
             pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
             pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
-        # Desenha o bombeeiro
-        if bombeiro:
-            centro_x, centro_y = interpolar(bombeiro)
-            # Círculo azul escuro para o bombeiro
-            pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
-            pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
+        # Desenha os bombeiros
+        if bombeiros:
+            for bombeiro in bombeiros:
+                centro_x, centro_y = interpolar(bombeiro)
+                # Círculo azul escuro para o bombeiro
+                pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
+                pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenhar Socorrista Sequencial
         if socorrista_seq:
@@ -113,7 +114,7 @@ class Visualizacao:
             pygame.draw.polygon(self.tela, (255, 255, 255), pontos)
             pygame.draw.polygon(self.tela, (0, 0, 0), pontos, 2)
 
-    def atualizar(self, ambiente, drone=None, bombeiro=None, socorrista_seq=None, socorrista_otm=None):
+    def atualizar(self, ambiente, drone=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if not self.running:
             return False
             
@@ -124,7 +125,7 @@ class Visualizacao:
                 return False
 
         self.desenhar_cenario(ambiente)
-        self.desenhar_agentes(ambiente, drone, bombeiro, socorrista_seq, socorrista_otm)
+        self.desenhar_agentes(ambiente, drone, bombeiros, socorrista_seq, socorrista_otm)
         pygame.display.flip()
         
         return True

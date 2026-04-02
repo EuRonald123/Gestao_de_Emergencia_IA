@@ -15,14 +15,26 @@ def main():
     visualizacao = Visualizacao(ambiente=ambiente)
     visualizacao.iniciar()
 
+
+
     #inicilizando os agentes
-    bombeiro = AgenteReativoBaseadoEmModelo(ambiente, None, quadrante='Q1', x=0, y=0)
-    socorrista_seq = AgenteBaseadoEmObjetivo(ambiente, None, x=0, y=4)
-    socorrista_otm = AgenteBaseadoEmUtilidade(ambiente, None, x=4, y=0)
+    bombeiros = []
+    pos_bombeiros = [(0, 0), (0, ambiente.grid_size - 1), (ambiente.grid_size - 1, 0), (ambiente.grid_size - 1, ambiente.grid_size - 1)]
 
-    bdi = AgenteBDI(ambiente, bombeiros=[bombeiro], socorrista_sequencial= socorrista_seq, socorrista_otimizador=socorrista_otm)
+    for b in range(4):
+        bombeiro = AgenteReativoBaseadoEmModelo(ambiente, None, quadrante=f'Q{b+1}', x=pos_bombeiros[b][0], y=pos_bombeiros[b][1])
+        bombeiros.append(bombeiro)
 
-    bombeiro.bdi = bdi
+    meio = ambiente.grid_size // 2
+    final = ambiente.grid_size - 1
+    socorrista_seq = AgenteBaseadoEmObjetivo(ambiente, None, x=0, y=meio)
+    socorrista_otm = AgenteBaseadoEmUtilidade(ambiente, None, x=final, y=meio)
+
+    bdi = AgenteBDI(ambiente, bombeiros=bombeiros, socorrista_sequencial= socorrista_seq, socorrista_otimizador=socorrista_otm)
+
+    for bombeiro in bombeiros:
+        bombeiro.bdi = bdi
+    
     socorrista_seq.bdi = bdi
     socorrista_otm.bdi = bdi
 
@@ -50,10 +62,11 @@ def main():
         drone.mover()
 
         #Bombeiro
-        bombeiro.perceber()
-        print(f"Bombeiro  percebeu: ({bombeiro.alvo}) na posicao: ({bombeiro.x}, {bombeiro.y})" )
-        acao = bombeiro.agir()
-        bombeiro.mover()
+        for bombeiro in bombeiros:
+            bombeiro.perceber()
+            #print(f"Bombeiro  percebeu: ({bombeiro.alvo}) na posicao: ({bombeiro.x}, {bombeiro.y})" )
+            acao = bombeiro.agir()
+            bombeiro.mover()
 
         #Socorrista Sequencial
         socorrista_seq.perceber()
@@ -71,7 +84,7 @@ def main():
         # Atualiza a interface graficamente de forma contínua durante 1 segundo
         tempo_inicio = time()
         while time() - tempo_inicio < 1.0:
-            if not visualizacao.atualizar(ambiente, drone=drone, bombeiro=bombeiro, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
+            if not visualizacao.atualizar(ambiente, drone=drone, bombeiros=bombeiros, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
                 return
             visualizacao.clock.tick(60) # Roda a interface a 60 FPS suavizando a animação
 
