@@ -29,14 +29,17 @@ class Visualizacao:
 
         self.img_obstaculo = pygame.transform.scale(pygame.image.load("Interface/assets/obstaculo_2.png").convert_alpha(), (int(tam_celula_x), int(tam_celula_y)))
         self.img_fogo = pygame.transform.scale(pygame.image.load("Interface/assets/fogo2.png").convert_alpha(), (int(tam_celula_x), int(tam_celula_y)))
+        self.img_vitima = pygame.transform.scale(pygame.image.load("Interface/assets/vitima.png").convert_alpha(), (int(tam_celula_x), int(tam_celula_y)))
 
-        escala_agente = 0.8
+        escala_agente = 0.7
         tam_agente_x = tam_celula_x * escala_agente
         tam_agente_y = tam_celula_y * escala_agente
 
         self.img_bombeiro = pygame.transform.scale(pygame.image.load("Interface/assets/bombeiro.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
         self.img_socorrista_seq = pygame.transform.scale(pygame.image.load("Interface/assets/socorrista_seq.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
         self.img_socorrista_otm = pygame.transform.scale(pygame.image.load("Interface/assets/socorrista_otm.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
+
+
 
     def desenhar_cenario(self, ambiente):
         if self.tela is None:
@@ -58,7 +61,8 @@ class Visualizacao:
                     self.tela.blit(self.img_fogo, rect_celula) # Desenha a imagem do fogo
                     #pygame.draw.rect(self.tela, (255, 69, 0), rect_celula) # Laranja Avermelhado (Fogo)
                 elif estado == Tile.VITIMA:
-                    pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
+                    self.tela.blit(self.img_vitima, rect_celula) # Desenha a imagem da vítima
+                    #pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
                 elif estado == Tile.OBSTACULO:
                     self.tela.blit(self.img_obstaculo, rect_celula) # Desenha a imagem do obstáculo
                     #pygame.draw.rect(self.tela, (139, 69, 19), rect_celula) # Marrom (Obstáculo)
