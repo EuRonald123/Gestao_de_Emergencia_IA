@@ -1,4 +1,7 @@
 # agentes/AgenteBaseadoEmObjetivo.py
+from utils.Tile import Tile
+from collections import deque
+
 class AgenteBaseadoEmObjetivo:
     def __init__(self, ambiente, bdi, x, y):
         self.ambiente = ambiente
@@ -63,6 +66,29 @@ class AgenteBaseadoEmObjetivo:
             if self.indice_atual >= len(self.lista_vitimas):
                 self.indice_atual = 0
 
+    # Função embutida pra traçar rota baseada no seu objetivo
+    def _planejar_caminho(self, inicio, fim):
+        if inicio == fim:
+            return []
+        
+        fila = deque([(inicio[0], inicio[1], [])])
+        visitados = set()
+        visitados.add(inicio)
+        
+        direcoes = [(0,1), (0,-1), (1,0), (-1,0), (1,1), (-1,-1), (1,-1), (-1,1)]
+        
+        while fila:
+            x, y, caminho = fila.popleft()
+            for dx, dy in direcoes:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.ambiente.grid_size and 0 <= ny < self.ambiente.grid_size:
+                    if (nx, ny) == fim:
+                        return caminho + [(nx, ny)]
+                    if (nx, ny) not in visitados and self.ambiente.matriz[nx][ny] != Tile.OBSTACULO:
+                        visitados.add((nx, ny))
+                        fila.append((nx, ny, caminho + [(nx, ny)]))
+        return []
+
     def mover(self):
         alvo = None
         if self.estado == 'movendo_vitima':
@@ -72,18 +98,10 @@ class AgenteBaseadoEmObjetivo:
         
         if alvo is None:
             return
-        dx = 0
-        dy = 0
-        if self.x < alvo[0]:
-            dx = 1
-        elif self.x > alvo[0]:
-            dx = -1
-        if self.y < alvo[1]:
-            dy = 1
-        elif self.y > alvo[1]:
-            dy = -1
-        self.x += dx
-        self.y += dy
+            
+        caminho = self._planejar_caminho((self.x, self.y), alvo)
+        if caminho:
+            self.x, self.y = caminho[0]
 
     def adicionar_vitima(self, vitima):
         self.lista_vitimas.append(vitima)

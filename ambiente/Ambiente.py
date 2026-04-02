@@ -106,3 +106,18 @@ class Ambiente:
             return 'Q3'   # Q3 
         else:
             return 'Q4'   # Q4 
+        
+
+    def gerar_obstaculos(self, quantidade):
+        celulas_vazias = self.calc_celulas_vazias()
+        if celulas_vazias is None:
+            return False
+
+        for _ in range(quantidade):
+            if not celulas_vazias:
+                break
+            x, y = random.choice(celulas_vazias)
+            self.matriz[x][y] = Tile.OBSTACULO
+            celulas_vazias.remove((x, y))
+        
+        return True

@@ -5,3 +5,4 @@ class Tile(IntEnum):
     FOGO = 1
     VITIMA = 2
     HOSPITAL = 3
+    OBSTACULO = 4

@@ -1,5 +1,7 @@
 # agentes/SocorristaOtimizador.py
 import math
+from utils.Tile import Tile
+from collections import deque
 
 class AgenteBaseadoEmUtilidade:
     def __init__(self, ambiente, bdi, x, y):
@@ -64,27 +66,42 @@ class AgenteBaseadoEmUtilidade:
             if self.lista_vitimas:
                 self.lista_vitimas.sort(key=lambda v: self.distancia(v))
 
+
+    def _planejar_caminho(self, inicio, fim):
+        if inicio == fim:
+            return []
+        
+        fila = deque([(inicio[0], inicio[1], [])])
+        visitados = set()
+        visitados.add(inicio)
+        
+        direcoes = [(0,1), (0,-1), (1,0), (-1,0), (1,1), (-1,-1), (1,-1), (-1,1)]
+        
+        while fila:
+            x, y, caminho = fila.popleft()
+            for dx, dy in direcoes:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.ambiente.grid_size and 0 <= ny < self.ambiente.grid_size:
+                    if (nx, ny) == fim:
+                        return caminho + [(nx, ny)]
+                    if (nx, ny) not in visitados and self.ambiente.matriz[nx][ny] != Tile.OBSTACULO:
+                        visitados.add((nx, ny))
+                        fila.append((nx, ny, caminho + [(nx, ny)]))
+        return []
+
     def mover(self):
         alvo = None
         if self.estado == 'movendo_vitima':
-            alvo = self.lista_vitimas[0]
+            alvo = self.lista_vitimas[0] # Lista já vem ordenada via heurística local de distancias
         elif self.estado == 'movendo_hospital':
             alvo = self._hospital_mais_proximo()
         
         if alvo is None:
             return
-        dx = 0
-        dy = 0
-        if self.x < alvo[0]:
-            dx = 1
-        elif self.x > alvo[0]:
-            dx = -1
-        if self.y < alvo[1]:
-            dy = 1
-        elif self.y > alvo[1]:
-            dy = -1
-        self.x += dx
-        self.y += dy
+            
+        caminho = self._planejar_caminho((self.x, self.y), alvo)
+        if caminho:
+            self.x, self.y = caminho[0]
 
     def adicionar_vitima(self, vitima):
         self.lista_vitimas.append(vitima)

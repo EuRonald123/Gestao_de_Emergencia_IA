@@ -42,11 +42,11 @@ class Visualizacao:
                     pygame.draw.rect(self.tela, (255, 69, 0), rect_celula) # Laranja Avermelhado (Fogo)
                 elif estado == Tile.VITIMA:
                     pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
+                elif estado == Tile.OBSTACULO:
+                    pygame.draw.rect(self.tela, (139, 69, 19), rect_celula) # Marrom (Obstáculo)
 
                 # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
-
-        # Borda externa e linhas divisórias dos 4 quadrantes
         pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura, self.altura), self.largura_borda)
         pygame.draw.line(self.tela, (0, 0, 0), (self.largura / 2, 0), (self.largura / 2, self.altura), 4) # Linha vertical grossa
         pygame.draw.line(self.tela, (0, 0, 0), (0, self.altura / 2), (self.largura, self.altura / 2), 4) # Linha horizontal grossa

@@ -64,7 +64,9 @@ def main():
 
 
     passos = 0
-    intervalo_geracao_eventos = 1
+    intervalo_geracao_eventos = 5
+
+    ambiente.gerar_obstaculos(quantidade=15) 
 
     while True:
         if passos >0 and passos % intervalo_geracao_eventos == 0:

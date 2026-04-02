@@ -132,9 +132,6 @@ class AgenteBDI:
         self.processar_crencas()
 
     def _escolher_socorrista(self):
-        # Para análise justa de desempenho (métricas), forçamos envio estrito 1 por 1 
-        # (metade das vitimas para cada), ignorando quem está ocioso.
-
         if self.contador_distribuicao_vitimas % 2 == 0:
             escolha = 'seq'
         else:
