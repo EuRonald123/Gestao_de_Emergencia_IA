@@ -38,6 +38,7 @@ class Visualizacao:
         self.img_bombeiro = pygame.transform.scale(pygame.image.load("Interface/assets/bombeiro.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
         self.img_socorrista_seq = pygame.transform.scale(pygame.image.load("Interface/assets/socorrista_seq.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
         self.img_socorrista_otm = pygame.transform.scale(pygame.image.load("Interface/assets/socorrista_otm.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
+        self.img_drone = pygame.transform.scale(pygame.image.load("Interface/assets/drone.png").convert_alpha(), (int(tam_agente_x), int(tam_agente_y)))
 
 
 
@@ -128,8 +129,15 @@ class Visualizacao:
             for drone in drones:
                 centro_x, centro_y = interpolar(drone)
                 # Círculo cinza claro para o drone
-                pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
-                pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
+                rect_x = centro_x - tam_celula_x / 2
+                rect_y = centro_y - tam_celula_y / 2
+
+                drone_x = rect_x + (tam_celula_x - tam_agente_x) / 2
+                drone_y = rect_y + (tam_celula_y - tam_agente_y) / 2
+
+                self.tela.blit(self.img_drone, (drone_x, drone_y))
+                #pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
+                #pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenha os bombeiros
         if bombeiros:
