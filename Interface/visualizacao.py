@@ -31,6 +31,15 @@ class Visualizacao:
         tam_celula_x = self.largura / ambiente.grid_size
         tam_celula_y = self.altura / ambiente.grid_size
 
+        # Carrega a imagem e já transforma para o tamanho de uma única célula
+        img_obstaculo = pygame.image.load("Interface/assets/obstaculo_2.png")
+        img_obstaculo = pygame.transform.scale(img_obstaculo, (int(tam_celula_x), int(tam_celula_y)))
+
+        img_fogo = pygame.image.load("Interface/assets/fogo2.png")
+        img_fogo = pygame.transform.scale(img_fogo, (int(tam_celula_x), int(tam_celula_y)))
+
+        
+
         # Desenhar grid e eventos
         for x in range(ambiente.grid_size):
             for y in range(ambiente.grid_size):
@@ -39,11 +48,13 @@ class Visualizacao:
                 
                 # Preencher a célula se houver fogo ou vítima
                 if estado == Tile.FOGO:
-                    pygame.draw.rect(self.tela, (255, 69, 0), rect_celula) # Laranja Avermelhado (Fogo)
+                    self.tela.blit(img_fogo, rect_celula) # Desenha a imagem do fogo
+                    #pygame.draw.rect(self.tela, (255, 69, 0), rect_celula) # Laranja Avermelhado (Fogo)
                 elif estado == Tile.VITIMA:
                     pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
                 elif estado == Tile.OBSTACULO:
-                    pygame.draw.rect(self.tela, (139, 69, 19), rect_celula) # Marrom (Obstáculo)
+                    self.tela.blit(img_obstaculo, rect_celula) # Desenha a imagem do obstáculo
+                    #pygame.draw.rect(self.tela, (139, 69, 19), rect_celula) # Marrom (Obstáculo)
 
                 # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
@@ -79,6 +90,14 @@ class Visualizacao:
         tam_celula_y = self.altura / ambiente.grid_size
         raio = int(min(tam_celula_x, tam_celula_y) / 3)
 
+        # Fator de tamanho (0.8 = 80% do tamanho da célula)
+        escala_bombeiro = 0.7
+        tam_bombeiro_x = tam_celula_x * escala_bombeiro
+        tam_bombeiro_y = tam_celula_y * escala_bombeiro
+
+        img_bombeiro = pygame.image.load("Interface/assets/bombeiro.png")
+        img_bombeiro = pygame.transform.scale(img_bombeiro, (int(tam_bombeiro_x), int(tam_bombeiro_y)))
+
         # Função auxiliar de interpolação visual ("Tweening") -> efeito de movimento suave
         def interpolar(agente):
             alvo_x, alvo_y = agente.x, agente.y
@@ -109,9 +128,20 @@ class Visualizacao:
         if bombeiros:
             for bombeiro in bombeiros:
                 centro_x, centro_y = interpolar(bombeiro)
+                # Calculando o canto superior esquerdo da célula a partir do centro interpolado
+                rect_x = centro_x - tam_celula_x / 2
+                rect_y = centro_y - tam_celula_y / 2
+
+                #centralizar a imagem do bombeiro no centro da célula
+                bombeiro_x = rect_x + (tam_celula_x - tam_bombeiro_x) / 2
+                bombeiro_y = rect_y + (tam_celula_y - tam_bombeiro_y) / 2
+                
+                # Desenha a imagem do bombeiro acompanhando o movimento
+                self.tela.blit(img_bombeiro, (bombeiro_x, bombeiro_y))
+
                 # Círculo azul escuro para o bombeiro
-                pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
-                pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
+                #pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
+                #pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenhar Socorrista Sequencial
         if socorrista_seq:
