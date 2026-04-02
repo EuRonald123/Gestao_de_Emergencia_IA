@@ -55,13 +55,14 @@ class AgenteBaseadoEmUtilidade:
             alvo = self.lista_vitimas[0]
             if self.ambiente.resgatar_vitima(alvo[0], alvo[1]):
                 self.carregando_vitima = True
+                self.vitima_carregada = self.lista_vitimas.pop(0) # Remove da fila de pendentes logo no resgate
 
         elif self.estado == 'no_hospital':
-            vitima = self.lista_vitimas.pop(0)
             self.carregando_vitima = False
-            self.bdi.registrar_resgate(self, vitima)
+            self.bdi.registrar_resgate(self, self.vitima_carregada)
             print(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
-            self.lista_vitimas.sort(key=lambda v: self.distancia(v))
+            if self.lista_vitimas:
+                self.lista_vitimas.sort(key=lambda v: self.distancia(v))
 
     def mover(self):
         alvo = None
