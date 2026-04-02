@@ -45,8 +45,8 @@ def main():
         bombeiros.append(bombeiro)
 
     #SOCORRISTAS:
-    socorrista_seq = AgenteBaseadoEmObjetivo(ambiente, None, x=0, y=meio)
-    socorrista_otm = AgenteBaseadoEmUtilidade(ambiente, None, x=final, y=meio)
+    socorrista_seq = AgenteBaseadoEmObjetivo(ambiente, None, x=meio-1, y=meio)
+    socorrista_otm = AgenteBaseadoEmUtilidade(ambiente, None, x=meio, y=meio)
 
     #Agente BDI:
     bdi = AgenteBDI(ambiente, bombeiros=bombeiros, socorrista_sequencial= socorrista_seq, socorrista_otimizador=socorrista_otm)
@@ -64,10 +64,9 @@ def main():
 
 
     passos = 0
-    intervalo_geracao_eventos = 5
+    intervalo_geracao_eventos = 1
 
     while True:
-
         if passos >0 and passos % intervalo_geracao_eventos == 0:
             #50% de chance de gerar fogo ou vitima
             if random.random() < 0.5:

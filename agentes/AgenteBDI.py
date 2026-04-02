@@ -21,11 +21,12 @@ class AgenteBDI:
 
         # Planos em execução
         self.planos_incendio = {}          # o bombeiro é reponsavel apenaas por apagar o fogo, de acordocom o pdf,  bombeiro para cada quadrante
-        #Vai pegar a lista de vitimas e dividir em duas parte, uma pra cada agente
+        #Vai pegar a lista de vitimas e alternar uma pra cada agente
         self.lista_resgate_sequencial = []
         self.lista_resgate_otimizador = []
         self.vitimas_designadas = set()
         self.fila_incendios = []
+        self.contador_distribuicao_vitimas = 0
 
 
     #metodo pra receber as informações que o drone coletou
@@ -131,13 +132,15 @@ class AgenteBDI:
         self.processar_crencas()
 
     def _escolher_socorrista(self):
-        if not self.socorrista_seq_ocupado:
-            return 'seq'
-        if not self.socorrista_opt_ocupado:
-            return 'opt'
-        if len(self.lista_resgate_sequencial) <= len(self.lista_resgate_otimizador):
-            return 'seq'
-        return 'opt'
+        # Para análise justa de desempenho (métricas), forçamos envio estrito 1 por 1 
+        # (metade das vitimas para cada), ignorando quem está ocioso.
+
+        if self.contador_distribuicao_vitimas % 2 == 0:
+            escolha = 'seq'
+        else:
+            escolha = 'otm'
+        self.contador_distribuicao_vitimas += 1
+        return escolha
 
     def _designar_para_sequencial(self, vitima):
         self.lista_resgate_sequencial.append(vitima)
