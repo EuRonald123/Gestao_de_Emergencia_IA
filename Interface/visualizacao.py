@@ -2,7 +2,7 @@ import pygame
 from utils.Tile import Tile
 
 class Visualizacao:
-    def __init__(self,ambiente, largura=600, altura=600, titulo="Ambiente"):
+    def __init__(self,ambiente, largura=600, altura=600, titulo="IA"):
         self.ambiente = ambiente
         self.largura = largura
         self.altura = altura
@@ -71,7 +71,7 @@ class Visualizacao:
             pygame.draw.rect(self.tela, (255, 0, 0), (cx - 4, cy - h_altura/4, 8, h_altura/2))
             pygame.draw.rect(self.tela, (255, 0, 0), (cx - h_largura/4, cy - 4, h_largura/2, 8))
 
-    def desenhar_agentes(self, ambiente, drone=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
+    def desenhar_agentes(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if self.tela is None:
             return
             
@@ -79,7 +79,7 @@ class Visualizacao:
         tam_celula_y = self.altura / ambiente.grid_size
         raio = int(min(tam_celula_x, tam_celula_y) / 3)
 
-        # Função auxiliar de interpolação visual ("Tweening")
+        # Função auxiliar de interpolação visual ("Tweening") -> efeito de movimento suave
         def interpolar(agente):
             alvo_x, alvo_y = agente.x, agente.y
             if id(agente) not in self.posicoes_agentes:
@@ -98,11 +98,12 @@ class Visualizacao:
             return int(novo_x * tam_celula_x + tam_celula_x / 2), int(novo_y * tam_celula_y + tam_celula_y / 2)
 
         # Desenha o drone
-        if drone:
-            centro_x, centro_y = interpolar(drone)
-            # Círculo cinza claro para o drone
-            pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
-            pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
+        if drones:
+            for drone in drones:
+                centro_x, centro_y = interpolar(drone)
+                # Círculo cinza claro para o drone
+                pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
+                pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenha os bombeiros
         if bombeiros:
@@ -136,7 +137,7 @@ class Visualizacao:
             pygame.draw.polygon(self.tela, (255, 255, 255), pontos)
             pygame.draw.polygon(self.tela, (0, 0, 0), pontos, 2)
 
-    def atualizar(self, ambiente, drone=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
+    def atualizar(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if not self.running:
             return False
             
@@ -147,7 +148,7 @@ class Visualizacao:
                 return False
 
         self.desenhar_cenario(ambiente)
-        self.desenhar_agentes(ambiente, drone, bombeiros, socorrista_seq, socorrista_otm)
+        self.desenhar_agentes(ambiente, drones, bombeiros, socorrista_seq, socorrista_otm)
         pygame.display.flip()
         
         return True

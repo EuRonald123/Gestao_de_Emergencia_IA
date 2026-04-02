@@ -42,7 +42,7 @@ class Ambiente:
     def gerar_fogos(self, max_fogos = None):
         celulas_vazias = self.calc_celulas_vazias()
         if celulas_vazias == None:
-            print("Não há mais espaço para gerar fogos ou vitimas.") #remover depois ;-;
+            #print("Não há mais espaço para gerar fogos ou vitimas.") #remover depois ;-;
             return False
 
         if max_fogos is not None and self.fogos_ativos >= max_fogos:
@@ -52,13 +52,13 @@ class Ambiente:
         self.matriz[x][y] = Tile.FOGO
         self.fogos_ativos += 1
 
-        print("__Fogo gerado na posição ({}, {})".format(x, y)) #remover depois
+        #print("__Fogo gerado na posição ({}, {})".format(x, y)) #remover depois
         return True
 
     def gerar_vitimas(self, max_vitimas = None):
         celulas_vazias = self.calc_celulas_vazias()
         if celulas_vazias == None:
-            print("Não há mais espaço para gerar fogos ou vitimas.") #esse printe é para debug e testes ininciais, vou remover depois kk
+            #print("Não há mais espaço para gerar fogos ou vitimas.") #esse printe é para debug e testes ininciais, vou remover depois kk
             return False
 
         if max_vitimas is not None and self.vitimas_ativas >= max_vitimas:
@@ -68,7 +68,7 @@ class Ambiente:
         self.matriz[x][y] = Tile.VITIMA
         self.vitimas_ativas += 1
 
-        print("__Vitima gerada na posição ({}, {})".format(x, y)) #remover depois
+        #print("__Vitima gerada na posição ({}, {})".format(x, y)) #remover depois
         return True
 
 
@@ -76,7 +76,7 @@ class Ambiente:
         if self.matriz[x][y] == Tile.FOGO:
             self.matriz[x][y] = Tile.VAZIO
             self.fogos_ativos -= 1
-            print("__Fogo apagado na posição ({}, {})".format(x, y)) #remover depois
+            #print("__Fogo apagado na posição ({}, {})".format(x, y)) #remover depois
             return True
         
         return False
@@ -85,7 +85,7 @@ class Ambiente:
         if self.matriz[x][y] == Tile.VITIMA:
             self.matriz[x][y] = Tile.VAZIO
             self.vitimas_ativas -= 1
-            print("__Vitima resgatada na posição ({}, {})".format(x, y)) #remover depois
+            #print("__Vitima resgatada na posição ({}, {})".format(x, y)) #remover depois
             return True
         
         return False
