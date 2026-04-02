@@ -46,8 +46,30 @@ class Visualizacao:
                 # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
 
-        # Borda externa
+        # Borda externa e linhas divisórias dos 4 quadrantes
         pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura, self.altura), self.largura_borda)
+        pygame.draw.line(self.tela, (0, 0, 0), (self.largura / 2, 0), (self.largura / 2, self.altura), 4) # Linha vertical grossa
+        pygame.draw.line(self.tela, (0, 0, 0), (0, self.altura / 2), (self.largura, self.altura / 2), 4) # Linha horizontal grossa
+
+        # Desenhar Hospital centralizado (um único grande bloco com 1 cruz)
+        if hasattr(ambiente, 'hospital_posicoes') and ambiente.hospital_posicoes:
+            h_min_x = min([p[0] for p in ambiente.hospital_posicoes])
+            h_min_y = min([p[1] for p in ambiente.hospital_posicoes])
+            h_max_x = max([p[0] for p in ambiente.hospital_posicoes])
+            h_max_y = max([p[1] for p in ambiente.hospital_posicoes])
+            
+            h_largura = (h_max_x - h_min_x + 1) * tam_celula_x
+            h_altura = (h_max_y - h_min_y + 1) * tam_celula_y
+            h_rect = (h_min_x * tam_celula_x, h_min_y * tam_celula_y, h_largura, h_altura)
+            
+            # Fundo branco do bloco único
+            pygame.draw.rect(self.tela, (200, 200, 200), h_rect)
+            
+            # Uma única cruz vermelha grande no centro
+            cx = h_rect[0] + h_rect[2] / 2
+            cy = h_rect[1] + h_rect[3] / 2
+            pygame.draw.rect(self.tela, (255, 0, 0), (cx - 4, cy - h_altura/4, 8, h_altura/2))
+            pygame.draw.rect(self.tela, (255, 0, 0), (cx - h_largura/4, cy - 4, h_largura/2, 8))
 
     def desenhar_agentes(self, ambiente, drone=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if self.tela is None:

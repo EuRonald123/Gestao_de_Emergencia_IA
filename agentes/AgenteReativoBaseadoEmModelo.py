@@ -1,6 +1,6 @@
 # agentes/Bombeiro.py (novo)
 class AgenteReativoBaseadoEmModelo:
-    def __init__(self, ambiente, bdi, quadrante, x, y):
+    def __init__(self, ambiente, bdi, quadrante, x , y):
         self.ambiente = ambiente
         self.bdi = bdi
         self.quadrante = quadrante

@@ -16,6 +16,12 @@ class Ambiente:
                 linha.append(Tile.VAZIO)
             self.matriz.append(linha)
 
+        # Hospital no centro
+        meio = grid_size // 2
+        self.hospital_posicoes = [(meio-1, meio-1), (meio-1, meio), (meio, meio-1), (meio, meio)]
+        for (hx, hy) in self.hospital_posicoes:
+            self.matriz[hx][hy] = Tile.HOSPITAL
+
 
     #Funcao que retorna todas posições das casinhas vazias da matriz
     def calc_celulas_vazias(self):

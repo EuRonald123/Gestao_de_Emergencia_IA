@@ -9,13 +9,18 @@ class AgenteBaseadoEmUtilidade:
         self.y = y
         self.lista_vitimas = []
         self.ocupado = False
+        self.carregando_vitima = False
         self.estado = 'ocioso'
+
+    def _hospital_mais_proximo(self):
+        return min(self.ambiente.hospital_posicoes, key=lambda pos: self.distancia(pos))
 
     def receber_lista(self, lista):
         self.lista_vitimas = sorted(lista, key=lambda v: self.distancia(v))
         self.ocupado = True
+        self.carregando_vitima = False
         if self.lista_vitimas:
-            self.estado = 'movendo'
+            self.estado = 'movendo_vitima'
         else:
             self.estado = 'ocioso'
 
@@ -26,29 +31,47 @@ class AgenteBaseadoEmUtilidade:
         if not self.ocupado:
             self.estado = 'ocioso'
             return
-        if not self.lista_vitimas:
+        if not self.lista_vitimas and not self.carregando_vitima:
             self.ocupado = False
             self.estado = 'ocioso'
             self.bdi.notificar_socorrista_concluiu(self)
             return
-        alvo = self.lista_vitimas[0]
-        if (self.x, self.y) == alvo:
-            self.estado = 'no_alvo'
+
+        if self.carregando_vitima:
+            alvo = self._hospital_mais_proximo()
+            if (self.x, self.y) == alvo:
+                self.estado = 'no_hospital'
+            else:
+                self.estado = 'movendo_hospital'
         else:
-            self.estado = 'movendo'
+            alvo = self.lista_vitimas[0]
+            if (self.x, self.y) == alvo:
+                self.estado = 'resgatando'
+            else:
+                self.estado = 'movendo_vitima'
 
     def agir(self):
-        if self.estado == 'no_alvo':
+        if self.estado == 'resgatando':
             alvo = self.lista_vitimas[0]
             if self.ambiente.resgatar_vitima(alvo[0], alvo[1]):
-                self.lista_vitimas.pop(0)
-                self.bdi.registrar_resgate(self, alvo)
-                self.lista_vitimas.sort(key=lambda v: self.distancia(v))
+                self.carregando_vitima = True
+
+        elif self.estado == 'no_hospital':
+            vitima = self.lista_vitimas.pop(0)
+            self.carregando_vitima = False
+            self.bdi.registrar_resgate(self, vitima)
+            print(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
+            self.lista_vitimas.sort(key=lambda v: self.distancia(v))
 
     def mover(self):
-        if self.estado != 'movendo':
+        alvo = None
+        if self.estado == 'movendo_vitima':
+            alvo = self.lista_vitimas[0]
+        elif self.estado == 'movendo_hospital':
+            alvo = self._hospital_mais_proximo()
+        
+        if alvo is None:
             return
-        alvo = self.lista_vitimas[0]
         dx = 0
         dy = 0
         if self.x < alvo[0]:
@@ -67,4 +90,4 @@ class AgenteBaseadoEmUtilidade:
         self.lista_vitimas.sort(key=lambda v: self.distancia(v))
         if not self.ocupado:
             self.ocupado = True
-            self.estado = 'movendo'
+            self.estado = 'movendo_vitima'
