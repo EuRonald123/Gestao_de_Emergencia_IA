@@ -1,12 +1,14 @@
 # agentes/AgenteBDI.py (implementação completa)
 from utils.Tile import Tile
+from utils.metricas import MetricasSimulacao
 
 class AgenteBDI:
-    def __init__(self, ambiente, bombeiros, socorrista_sequencial, socorrista_otimizador):
+    def __init__(self, ambiente, bombeiros, socorrista_sequencial, socorrista_otimizador, metricas=None):
         self.ambiente = ambiente
         self.bombeiros = bombeiros
         self.socorrista_sequencial = socorrista_sequencial
         self.socorrista_otimizador = socorrista_otimizador
+        self.metricas = metricas
 
         # Crenças
         self.crencas = {
@@ -75,7 +77,7 @@ class AgenteBDI:
                     break
 
     def atribuir_bombeiro(self, bombeiro, fogo):
-        #Envia um bombeiro pra apagar o fogo da tua mae
+        # Envia um bombeiro para apagar o fogo 
         self.bombeiro_ocupado[bombeiro] = True
         self.planos_incendio[bombeiro] = fogo
         bombeiro.receber_ordem(fogo)
@@ -119,11 +121,17 @@ class AgenteBDI:
         self.vitimas_designadas.discard(vitima)
 
         if socorrista == self.socorrista_sequencial:
+            #para metrica
+            if self.metricas:
+                self.metricas.registrar_resgate(MetricasSimulacao.AGENTE_SEQUENCIAL)
             if vitima in self.lista_resgate_sequencial:
                 self.lista_resgate_sequencial.remove(vitima)
             if not self.lista_resgate_sequencial:
                 self.socorrista_seq_ocupado = False
         elif socorrista == self.socorrista_otimizador:
+            #aqui é para as metricas, ja salva o numero de vitimas resgatadas e tals
+            if self.metricas:
+                self.metricas.registrar_resgate(MetricasSimulacao.AGENTE_OTIMIZADOR)
             if vitima in self.lista_resgate_otimizador:
                 self.lista_resgate_otimizador.remove(vitima)
             if not self.lista_resgate_otimizador:

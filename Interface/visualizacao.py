@@ -2,19 +2,25 @@ import pygame
 from utils.Tile import Tile
 
 class Visualizacao:
-    def __init__(self,ambiente, largura=600, altura=600, titulo="IA"):
+    def __init__(self,ambiente, metricas=None, largura=900, altura=600, titulo="IA"):
         self.ambiente = ambiente
+        self.metricas = metricas
         self.largura = largura
         self.altura = altura
         self.titulo = titulo
         self.cor_fundo = (34, 139, 34)
         self.cor_borda = (0, 0, 0)
         self.largura_borda = 4
+        self.largura_menu = 280
+        self.largura_cenario = self.largura - self.largura_menu
         self.running = False
         self.tela = None
         self.posicoes_agentes = {} # Guarda as posições x,y de animação de cada agente ativo
         self.velocidade_animacao = 0.1 # Controle de velocidade (0.1 a 1.0)
         self.clock = pygame.time.Clock()
+        self.modo_painel = "metricas"
+        self.opcoes_painel = ["metricas", "mensagens"]
+        self.indice_opcao = 0
 
     def iniciar(self):
         pygame.init()
@@ -24,7 +30,7 @@ class Visualizacao:
         self.carregar_assets()
 
     def carregar_assets(self):
-        tam_celula_x = self.largura / self.ambiente.grid_size
+        tam_celula_x = self.largura_cenario / self.ambiente.grid_size
         tam_celula_y = self.altura / self.ambiente.grid_size
 
         self.img_obstaculo = pygame.transform.scale(pygame.image.load("Interface/assets/obstaculo_2.png").convert_alpha(), (int(tam_celula_x), int(tam_celula_y)))
@@ -48,7 +54,7 @@ class Visualizacao:
 
         self.tela.fill(self.cor_fundo)
         
-        tam_celula_x = self.largura / ambiente.grid_size
+        tam_celula_x = self.largura_cenario / ambiente.grid_size
         tam_celula_y = self.altura / ambiente.grid_size
 
         # Desenhar grid e eventos
@@ -60,19 +66,19 @@ class Visualizacao:
                 # Preencher a célula se houver fogo ou vítima
                 if estado == Tile.FOGO:
                     self.tela.blit(self.img_fogo, rect_celula) # Desenha a imagem do fogo
-                    #pygame.draw.rect(self.tela, (255, 69, 0), rect_celula) # Laranja Avermelhado (Fogo)
+                    
                 elif estado == Tile.VITIMA:
                     self.tela.blit(self.img_vitima, rect_celula) # Desenha a imagem da vítima
-                    #pygame.draw.rect(self.tela, (30, 144, 255), rect_celula) # Azul (Vítima)
+                    
                 elif estado == Tile.OBSTACULO:
                     self.tela.blit(self.img_obstaculo, rect_celula) # Desenha a imagem do obstáculo
-                    #pygame.draw.rect(self.tela, (139, 69, 19), rect_celula) # Marrom (Obstáculo)
+                    
 
                 # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
-        pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura, self.altura), self.largura_borda)
-        pygame.draw.line(self.tela, (0, 0, 0), (self.largura / 2, 0), (self.largura / 2, self.altura), 4) # Linha vertical grossa
-        pygame.draw.line(self.tela, (0, 0, 0), (0, self.altura / 2), (self.largura, self.altura / 2), 4) # Linha horizontal grossa
+        pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura_cenario, self.altura), self.largura_borda)
+        pygame.draw.line(self.tela, (0, 0, 0), (self.largura_cenario / 2, 0), (self.largura_cenario / 2, self.altura), 4) # Linha vertical grossa
+        pygame.draw.line(self.tela, (0, 0, 0), (0, self.altura / 2), (self.largura_cenario, self.altura / 2), 4) # Linha horizontal grossa
 
         # Desenhar Hospital centralizado (um único grande bloco com 1 cruz)
         if hasattr(ambiente, 'hospital_posicoes') and ambiente.hospital_posicoes:
@@ -98,7 +104,7 @@ class Visualizacao:
         if self.tela is None:
             return
             
-        tam_celula_x = self.largura / ambiente.grid_size
+        tam_celula_x = self.largura_cenario / ambiente.grid_size
         tam_celula_y = self.altura / ambiente.grid_size
         raio = int(min(tam_celula_x, tam_celula_y) / 3)
 
@@ -201,6 +207,58 @@ class Visualizacao:
             socorrista_otm_x = rect_x + (tam_celula_x - tam_agente_x) / 2
             socorrista_otm_y = rect_y + (tam_celula_y - tam_agente_y) / 2
             self.tela.blit(self.img_socorrista_otm, (socorrista_otm_x, socorrista_otm_y))
+
+    def desenhar_menu_lateral(self):
+        area_x = self.largura_cenario
+        area_largura = self.largura_menu
+        pygame.draw.rect(self.tela, (20, 20, 20), (area_x, 0, area_largura, self.altura))
+
+        fonte_titulo = pygame.font.SysFont("arial", 28, bold=True)
+        fonte_item = pygame.font.SysFont("arial", 22, bold=False)
+        fonte_texto = pygame.font.SysFont("arial", 20, bold=False)
+
+        #define o titulo da janela da met e mens
+        titulo = fonte_titulo.render("Painel", True, (255, 255, 255))
+        
+        
+        self.tela.blit(titulo, (area_x + 20, 20))
+
+        for i, opcao in enumerate(self.opcoes_painel):
+            selecionado = i == self.indice_opcao
+            cor_fundo = (70, 70, 70) if selecionado else (40, 40, 40)
+            cor_texto = (255, 255, 255) if selecionado else (180, 180, 180)
+            caixa_y = 70 + i * 44
+            pygame.draw.rect(self.tela, cor_fundo, (area_x + 20, caixa_y, area_largura - 40, 34), border_radius=6)
+            texto = fonte_item.render(opcao.capitalize(), True, cor_texto)
+            self.tela.blit(texto, (area_x + 30, caixa_y + 6))
+
+        pygame.draw.line(self.tela, (90, 90, 90), (area_x + 20, 170), (area_x + area_largura - 20, 170), 1)
+
+        if self.modo_painel == "metricas":
+            self._desenhar_metricas(area_x, fonte_texto, fonte_item)
+        else:
+            placeholder = fonte_texto.render("Mensagens: em breve", True, (230, 230, 230))
+            self.tela.blit(placeholder, (area_x + 20, 190))
+
+    def _desenhar_metricas(self, area_x, fonte_texto, fonte_item):
+        if not self.metricas:
+            sem_dados = fonte_texto.render("Sem metricas", True, (230, 230, 230))
+            self.tela.blit(sem_dados, (area_x + 20, 190))
+            return
+
+        snapshot = self.metricas.obter_snapshot()
+        seq = snapshot.get("sequencial", {"qtd_vitimas": 0, "qtd_passos": 0})
+        otm = snapshot.get("otimizador", {"qtd_vitimas": 0, "qtd_passos": 0})
+
+        titulo_seq = fonte_item.render("Sequencial", True, (255, 255, 255))
+        self.tela.blit(titulo_seq, (area_x + 20, 190))
+        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {seq['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, 220))
+        self.tela.blit(fonte_texto.render(f"qtd_passos: {seq['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, 248))
+
+        titulo_otm = fonte_item.render("Otimizador", True, (255, 255, 255))
+        self.tela.blit(titulo_otm, (area_x + 20, 300))
+        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {otm['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, 330))
+        self.tela.blit(fonte_texto.render(f"qtd_passos: {otm['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, 358))
         
 
     def atualizar(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
@@ -212,9 +270,17 @@ class Visualizacao:
                 self.running = False
                 pygame.quit()
                 return False
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_UP:
+                    self.indice_opcao = (self.indice_opcao - 1) % len(self.opcoes_painel)
+                elif evento.key == pygame.K_DOWN:
+                    self.indice_opcao = (self.indice_opcao + 1) % len(self.opcoes_painel)
+                elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                    self.modo_painel = self.opcoes_painel[self.indice_opcao]
 
         self.desenhar_cenario(ambiente)
         self.desenhar_agentes(ambiente, drones, bombeiros, socorrista_seq, socorrista_otm)
+        self.desenhar_menu_lateral()
         pygame.display.flip()
         
         return True

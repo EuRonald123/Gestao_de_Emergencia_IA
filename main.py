@@ -6,13 +6,15 @@ from agentes.AgenteBaseadoEmObjetivo import AgenteBaseadoEmObjetivo
 from agentes.AgenteBaseadoEmUtilidade import AgenteBaseadoEmUtilidade
 from agentes.AgenteReativoBaseadoEmModelo import AgenteReativoBaseadoEmModelo
 from Interface.visualizacao import Visualizacao
+from utils.metricas import MetricasSimulacao
 from time import time
 
 def main():
     ambiente = Ambiente(grid_size = 10)
+    metricas = MetricasSimulacao()
 
     #cria a janela pygame para a visualizacao
-    visualizacao = Visualizacao(ambiente=ambiente)
+    visualizacao = Visualizacao(ambiente=ambiente, metricas=metricas)
     visualizacao.iniciar()
 
     #Auxiliar para pegar posiçoes
@@ -25,7 +27,7 @@ def main():
     #DRONES:
     drones = []
     pos_drones = [(0,meio), (final, meio)]
-    qtd_drones = 4
+    qtd_drones = 10
     for d in range(qtd_drones):
         if d%2 == 0:
             pos = 0
@@ -49,7 +51,13 @@ def main():
     socorrista_otm = AgenteBaseadoEmUtilidade(ambiente, None, x=meio, y=meio)
 
     #Agente BDI:
-    bdi = AgenteBDI(ambiente, bombeiros=bombeiros, socorrista_sequencial= socorrista_seq, socorrista_otimizador=socorrista_otm)
+    bdi = AgenteBDI(
+        ambiente,
+        bombeiros=bombeiros,
+        socorrista_sequencial=socorrista_seq,
+        socorrista_otimizador=socorrista_otm,
+        metricas=metricas,
+    )
 
 
     #Atribuicao do BDI para os agentes
@@ -64,14 +72,14 @@ def main():
 
 
     passos = 0
-    intervalo_geracao_eventos = 5
+    intervalo_geracao_eventos = 1
 
     ambiente.gerar_obstaculos(quantidade=15) 
 
     while True:
         if passos >0 and passos % intervalo_geracao_eventos == 0:
             #50% de chance de gerar fogo ou vitima
-            if random.random() < 0.5:
+            if random.random() < 0.0:
                 ambiente.gerar_fogos()
             else:
                 ambiente.gerar_vitimas()
@@ -93,16 +101,22 @@ def main():
             bombeiro.mover()
 
         #Socorrista Sequencial
+        pos_seq_antes = (socorrista_seq.x, socorrista_seq.y)
         socorrista_seq.perceber()
         #print(f"Socorrista Sequencial percebeu: ({socorrista_seq.lista_vitimas}) na posicao: ({socorrista_seq.x}, {socorrista_seq.y})" )
         acao = socorrista_seq.agir()
         socorrista_seq.mover()
+        if (socorrista_seq.x, socorrista_seq.y) != pos_seq_antes:
+            metricas.registrar_passo(MetricasSimulacao.AGENTE_SEQUENCIAL)
 
         #Socorrista Otimizador
+        pos_otm_antes = (socorrista_otm.x, socorrista_otm.y)
         socorrista_otm.perceber()
         #print(f"Socorrista Otimizador percebeu: ({socorrista_otm.lista_vitimas}) na posicao: ({socorrista_otm.x}, {socorrista_otm.y})" )
         acao = socorrista_otm.agir()
         socorrista_otm.mover()
+        if (socorrista_otm.x, socorrista_otm.y) != pos_otm_antes:
+            metricas.registrar_passo(MetricasSimulacao.AGENTE_OTIMIZADOR)
 
 
         # Atualiza a interface graficamente de forma contínua durante 1 segundo
@@ -110,10 +124,11 @@ def main():
         while time() - tempo_inicio < 1.0:
             if not visualizacao.atualizar(ambiente, drones=drones, bombeiros=bombeiros, socorrista_seq=socorrista_seq, socorrista_otm=socorrista_otm):
                 return
-            visualizacao.clock.tick(60) # Roda a interface a 60 FPS suavizando a animação
+            visualizacao.clock.tick(60)
 
         passos += 1
 
 
 if __name__ == "__main__":
     main()
+    
