@@ -27,7 +27,7 @@ def main():
     #DRONES:
     drones = []
     pos_drones = [(0,meio), (final, meio)]
-    qtd_drones = 10
+    qtd_drones = 4
     for d in range(qtd_drones):
         if d%2 == 0:
             pos = 0
@@ -72,14 +72,14 @@ def main():
 
 
     passos = 0
-    intervalo_geracao_eventos = 1
+    intervalo_geracao_eventos = 5
 
     ambiente.gerar_obstaculos(quantidade=15) 
 
     while True:
         if passos >0 and passos % intervalo_geracao_eventos == 0:
             #50% de chance de gerar fogo ou vitima
-            if random.random() < 0.0:
+            if random.random() < 0.5:
                 ambiente.gerar_fogos()
             else:
                 ambiente.gerar_vitimas()
@@ -126,6 +126,7 @@ def main():
                 return
             visualizacao.clock.tick(60)
 
+        metricas.registrar_tempo(segundos=1)
         passos += 1
 
 

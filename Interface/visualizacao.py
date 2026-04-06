@@ -48,7 +48,7 @@ class Visualizacao:
 
 
 
-    def desenhar_cenario(self, ambiente):
+    def desenhar_cenario(self, ambiente, bdi=None):
         if self.tela is None:
             return
 
@@ -63,7 +63,7 @@ class Visualizacao:
                 estado = ambiente.obter_estado(x, y)
                 rect_celula = (x * tam_celula_x, y * tam_celula_y, tam_celula_x, tam_celula_y)
                 
-                # Preencher a célula se houver fogo ou vítima
+                # Desenho fogo, vimita, obstaculo
                 if estado == Tile.FOGO:
                     self.tela.blit(self.img_fogo, rect_celula) # Desenha a imagem do fogo
                     
@@ -71,16 +71,18 @@ class Visualizacao:
                     self.tela.blit(self.img_vitima, rect_celula) # Desenha a imagem da vítima
                     
                 elif estado == Tile.OBSTACULO:
-                    self.tela.blit(self.img_obstaculo, rect_celula) # Desenha a imagem do obstáculo
-                    
+                    self.tela.blit(self.img_obstaculo, rect_celula) # Desenha a imagem do obstáculo   
 
                 # linhas da grade
                 pygame.draw.rect(self.tela, (50, 180, 50), rect_celula, 1) # Verde claro
+
+        self._desenhar_indicadores_vitimas_designadas(ambiente, bdi, tam_celula_x, tam_celula_y)
+
         pygame.draw.rect(self.tela, self.cor_borda, (0,0,self.largura_cenario, self.altura), self.largura_borda)
         pygame.draw.line(self.tela, (0, 0, 0), (self.largura_cenario / 2, 0), (self.largura_cenario / 2, self.altura), 4) # Linha vertical grossa
         pygame.draw.line(self.tela, (0, 0, 0), (0, self.altura / 2), (self.largura_cenario, self.altura / 2), 4) # Linha horizontal grossa
 
-        # Desenhar Hospital centralizado (um único grande bloco com 1 cruz)
+        # Desenhar Hospital centralizado
         if hasattr(ambiente, 'hospital_posicoes') and ambiente.hospital_posicoes:
             h_min_x = min([p[0] for p in ambiente.hospital_posicoes])
             h_min_y = min([p[1] for p in ambiente.hospital_posicoes])
@@ -94,11 +96,42 @@ class Visualizacao:
             # Fundo branco do bloco único
             pygame.draw.rect(self.tela, (200, 200, 200), h_rect)
             
-            # Uma única cruz vermelha grande no centro
+            # cruz vermelha do hospital
             cx = h_rect[0] + h_rect[2] / 2
             cy = h_rect[1] + h_rect[3] / 2
             pygame.draw.rect(self.tela, (255, 0, 0), (cx - 4, cy - h_altura/4, 8, h_altura/2))
             pygame.draw.rect(self.tela, (255, 0, 0), (cx - h_largura/4, cy - 4, h_largura/2, 8))
+
+
+    #essa funcao aqui é apenas para desenhar um pequeno circulo da cor do socorrista em cima da vitima.
+    def _desenhar_indicadores_vitimas_designadas(self, ambiente, bdi, tam_celula_x, tam_celula_y):
+        if not bdi:
+            return
+
+        vitimas_seq = set(getattr(bdi, "lista_resgate_sequencial", []))
+        vitimas_otm = set(getattr(bdi, "lista_resgate_otimizador", []))
+        vitimas_otm -= vitimas_seq
+        raio = max(4, int(min(tam_celula_x, tam_celula_y) * 0.12))
+
+        def desenhar_marcadores(vitimas, cor):
+            for pos in vitimas:
+                if not isinstance(pos, tuple) or len(pos) != 2:
+                    continue
+
+                x, y = pos
+                if not (0 <= x < ambiente.grid_size and 0 <= y < ambiente.grid_size):
+                    continue
+
+                if ambiente.obter_estado(x, y) != Tile.VITIMA:
+                    continue
+
+                centro_x = int(x * tam_celula_x + tam_celula_x / 2)
+                centro_y = int(y * tam_celula_y + tam_celula_y / 2)
+                pygame.draw.circle(self.tela, cor, (centro_x, centro_y), raio)
+                pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 1)
+
+        desenhar_marcadores(vitimas_seq, (255, 255, 255))
+        desenhar_marcadores(vitimas_otm, (255, 235, 59))
 
     def desenhar_agentes(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if self.tela is None:
@@ -111,6 +144,7 @@ class Visualizacao:
         escala_agente = 0.7
         tam_agente_x = tam_celula_x * escala_agente
         tam_agente_y = tam_celula_y * escala_agente
+        fonte_bombeiro = pygame.font.SysFont("arial", max(12, int(tam_celula_y * 0.22)), bold=True)
 
         # Função auxiliar de interpolação visual ("Tweening") -> efeito de movimento suave
         def interpolar(agente):
@@ -142,8 +176,6 @@ class Visualizacao:
                 drone_y = rect_y + (tam_celula_y - tam_agente_y) / 2
 
                 self.tela.blit(self.img_drone, (drone_x, drone_y))
-                #pygame.draw.circle(self.tela, (169, 169, 169), (centro_x, centro_y), raio)
-                #pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
 
         # Desenha os bombeiros
         if bombeiros:
@@ -159,10 +191,14 @@ class Visualizacao:
                 
                 # Desenha a imagem do bombeiro acompanhando o movimento
                 self.tela.blit(self.img_bombeiro, (bombeiro_x, bombeiro_y))
-
-                # Círculo azul escuro para o bombeiro
-                #pygame.draw.circle(self.tela, (0, 0, 139), (centro_x, centro_y), raio)
-                #pygame.draw.circle(self.tela, (0, 0, 0), (centro_x, centro_y), raio, 2)
+                
+                #Desenha o identificador do quadrante do bombeiroo
+                texto_quadrante = fonte_bombeiro.render(bombeiro.quadrante.lower(), True, (255, 255, 255))
+                texto_sombra = fonte_bombeiro.render(bombeiro.quadrante.lower(), True, (0, 0, 0))
+                texto_x = int(centro_x - texto_quadrante.get_width() / 2)
+                texto_y = int(bombeiro_y + tam_agente_y - texto_quadrante.get_height() / 2)
+                self.tela.blit(texto_sombra, (texto_x + 1, texto_y + 1))
+                self.tela.blit(texto_quadrante, (texto_x, texto_y))
 
         # Desenhar Socorrista Sequencial
         if socorrista_seq:
@@ -175,32 +211,14 @@ class Visualizacao:
             socorrista_seq_y = rect_y + (tam_celula_y - tam_agente_y) / 2
             
             
-            '''# usei um tringulo de cor rosa 
-
-            pontos = [
-                (centro_x, centro_y - raio),
-                (centro_x - raio, centro_y + raio),
-                (centro_x + raio, centro_y + raio)
-            ]
-            '''
             self.tela.blit(self.img_socorrista_seq, (socorrista_seq_x, socorrista_seq_y))
             
-            #pygame.draw.polygon(self.tela, (255, 105, 180), pontos)
-            #pygame.draw.polygon(self.tela, (0, 0, 0), pontos, 2)
 
         # Desenhar Socorrista Otimizador
         if socorrista_otm:
             centro_x, centro_y = interpolar(socorrista_otm)
             # triangulo branco socorrista otimizador
-            '''
-             pontos = [
-                (centro_x, centro_y - raio),
-                (centro_x - raio, centro_y + raio),
-                (centro_x + raio, centro_y + raio)
-            ]
-            pygame.draw.polygon(self.tela, (255, 255, 255), pontos)
-            pygame.draw.polygon(self.tela, (0, 0, 0), pontos, 2)
-            '''
+
             rect_x = centro_x - tam_celula_x / 2
             rect_y = centro_y - tam_celula_y / 2
 
@@ -218,7 +236,7 @@ class Visualizacao:
         fonte_texto = pygame.font.SysFont("arial", 20, bold=False)
 
         #define o titulo da janela da met e mens
-        titulo = fonte_titulo.render("Painel", True, (255, 255, 255))
+        titulo = fonte_titulo.render("Metricas e Mensagens", True, (255, 255, 255))
         
         
         self.tela.blit(titulo, (area_x + 20, 20))
@@ -227,38 +245,44 @@ class Visualizacao:
             selecionado = i == self.indice_opcao
             cor_fundo = (70, 70, 70) if selecionado else (40, 40, 40)
             cor_texto = (255, 255, 255) if selecionado else (180, 180, 180)
-            caixa_y = 70 + i * 44
+            caixa_y = 100 + i * 44
             pygame.draw.rect(self.tela, cor_fundo, (area_x + 20, caixa_y, area_largura - 40, 34), border_radius=6)
             texto = fonte_item.render(opcao.capitalize(), True, cor_texto)
             self.tela.blit(texto, (area_x + 30, caixa_y + 6))
 
-        pygame.draw.line(self.tela, (90, 90, 90), (area_x + 20, 170), (area_x + area_largura - 20, 170), 1)
+        pygame.draw.line(self.tela, (90, 90, 90), (area_x + 20, 198), (area_x + area_largura - 20, 198), 1)
 
         if self.modo_painel == "metricas":
             self._desenhar_metricas(area_x, fonte_texto, fonte_item)
         else:
             placeholder = fonte_texto.render("Mensagens: em breve", True, (230, 230, 230))
-            self.tela.blit(placeholder, (area_x + 20, 190))
+            self.tela.blit(placeholder, (area_x + 20, 218))
 
     def _desenhar_metricas(self, area_x, fonte_texto, fonte_item):
         if not self.metricas:
             sem_dados = fonte_texto.render("Sem metricas", True, (230, 230, 230))
-            self.tela.blit(sem_dados, (area_x + 20, 190))
+            self.tela.blit(sem_dados, (area_x + 20, 218))
             return
 
         snapshot = self.metricas.obter_snapshot()
+        tempo_segundos = snapshot.get("tempo_segundos", 0)
         seq = snapshot.get("sequencial", {"qtd_vitimas": 0, "qtd_passos": 0})
         otm = snapshot.get("otimizador", {"qtd_vitimas": 0, "qtd_passos": 0})
 
-        titulo_seq = fonte_item.render("Sequencial", True, (255, 255, 255))
-        self.tela.blit(titulo_seq, (area_x + 20, 190))
-        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {seq['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, 220))
-        self.tela.blit(fonte_texto.render(f"qtd_passos: {seq['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, 248))
+        self.tela.blit(fonte_texto.render(f"tempo: {tempo_segundos}s", True, (210, 210, 210)), (area_x + 20, 218))
 
+        base_y = 248
+        
+        titulo_seq = fonte_item.render("Sequencial", True, (255, 255, 255))
+        self.tela.blit(titulo_seq, (area_x + 20, base_y))
+        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {seq['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, base_y + 30))
+        self.tela.blit(fonte_texto.render(f"qtd_passos: {seq['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, base_y + 58))
+        
+        
         titulo_otm = fonte_item.render("Otimizador", True, (255, 255, 255))
-        self.tela.blit(titulo_otm, (area_x + 20, 300))
-        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {otm['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, 330))
-        self.tela.blit(fonte_texto.render(f"qtd_passos: {otm['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, 358))
+        self.tela.blit(titulo_otm, (area_x + 20, base_y + 140))
+        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {otm['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, base_y + 170))
+        self.tela.blit(fonte_texto.render(f"qtd_passos: {otm['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, base_y + 198))
         
 
     def atualizar(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
@@ -278,7 +302,13 @@ class Visualizacao:
                 elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.modo_painel = self.opcoes_painel[self.indice_opcao]
 
-        self.desenhar_cenario(ambiente)
+        bdi = None
+        if socorrista_seq and hasattr(socorrista_seq, "bdi"):
+            bdi = socorrista_seq.bdi
+        elif socorrista_otm and hasattr(socorrista_otm, "bdi"):
+            bdi = socorrista_otm.bdi
+
+        self.desenhar_cenario(ambiente, bdi=bdi)
         self.desenhar_agentes(ambiente, drones, bombeiros, socorrista_seq, socorrista_otm)
         self.desenhar_menu_lateral()
         pygame.display.flip()

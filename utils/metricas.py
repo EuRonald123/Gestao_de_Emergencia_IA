@@ -3,6 +3,7 @@ class MetricasSimulacao:
     AGENTE_OTIMIZADOR = "otimizador"
 
     def __init__(self):
+        self.tempo_segundos = 0
         self._dados = {
             self.AGENTE_SEQUENCIAL: {
                 "qtd_vitimas": 0,
@@ -22,8 +23,13 @@ class MetricasSimulacao:
         if agente_nome in self._dados:
             self._dados[agente_nome]["qtd_passos"] += 1
 
+    def registrar_tempo(self, segundos=1):
+        self.tempo_segundos += max(0, int(segundos))
+
     def obter_snapshot(self):
-        return {
+        snapshot = {
             agente: valores.copy()
             for agente, valores in self._dados.items()
         }
+        snapshot["tempo_segundos"] = self.tempo_segundos
+        return snapshot
