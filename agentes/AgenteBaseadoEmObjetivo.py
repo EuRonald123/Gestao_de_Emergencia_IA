@@ -61,7 +61,7 @@ class AgenteBaseadoEmObjetivo:
         elif self.estado == 'no_hospital':
             self.carregando_vitima = False
             self.bdi.registrar_resgate(self, self.vitima_carregada)
-            print(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
+            #print(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
             
             if self.indice_atual >= len(self.lista_vitimas):
                 self.indice_atual = 0

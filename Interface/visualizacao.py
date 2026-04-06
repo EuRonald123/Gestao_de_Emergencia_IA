@@ -227,6 +227,10 @@ class Visualizacao:
             self.tela.blit(self.img_socorrista_otm, (socorrista_otm_x, socorrista_otm_y))
 
     def desenhar_menu_lateral(self):
+        bdi = None
+        if hasattr(self, "bdi_referencia"):
+            bdi = self.bdi_referencia
+
         area_x = self.largura_cenario
         area_largura = self.largura_menu
         pygame.draw.rect(self.tela, (20, 20, 20), (area_x, 0, area_largura, self.altura))
@@ -255,8 +259,59 @@ class Visualizacao:
         if self.modo_painel == "metricas":
             self._desenhar_metricas(area_x, fonte_texto, fonte_item)
         else:
-            placeholder = fonte_texto.render("Mensagens: em breve", True, (230, 230, 230))
-            self.tela.blit(placeholder, (area_x + 20, 218))
+            self._desenhar_mensagens(area_x, fonte_texto, fonte_item, bdi)
+
+    def _quebrar_texto(self, texto, fonte, largura_max):
+        palavras = texto.split()
+        if not palavras:
+            return [""]
+
+        linhas = []
+        linha_atual = palavras[0]
+        for palavra in palavras[1:]:
+            tentativa = f"{linha_atual} {palavra}"
+            if fonte.size(tentativa)[0] <= largura_max:
+                linha_atual = tentativa
+            else:
+                linhas.append(linha_atual)
+                linha_atual = palavra
+
+        linhas.append(linha_atual)
+        return linhas
+
+    def _desenhar_mensagens(self, area_x, fonte_texto, fonte_item, bdi):
+        titulo = fonte_item.render("Mensagens", True, (255, 255, 255))
+        self.tela.blit(titulo, (area_x + 20, 218))
+
+        if not bdi:
+            sem_bdi = fonte_texto.render("Sem conexao com BDI", True, (230, 230, 230))
+            self.tela.blit(sem_bdi, (area_x + 20, 248))
+            return
+
+        mensagens = getattr(bdi, "historico_mensagens", [])
+        if not mensagens:
+            #sem_msg = fonte_texto.render("Sem mensagens ainda", True, (230, 230, 230))
+            #self.tela.blit(sem_msg, (area_x + 20, 248))
+            return
+
+        x_texto = area_x + 20
+        y_texto = 248
+        largura_texto = self.largura_menu - 40
+        limite_inferior = self.altura - 12
+
+        for msg in reversed(mensagens):
+            linhas = self._quebrar_texto(msg, fonte_texto, largura_texto)
+            altura_bloco = (len(linhas) * 20) + 8
+
+            if y_texto + altura_bloco > limite_inferior:
+                break
+
+            for linha in linhas:
+                render = fonte_texto.render(linha, True, (210, 210, 210))
+                self.tela.blit(render, (x_texto, y_texto))
+                y_texto += 20
+
+            y_texto += 8
 
     def _desenhar_metricas(self, area_x, fonte_texto, fonte_item):
         if not self.metricas:
@@ -307,6 +362,8 @@ class Visualizacao:
             bdi = socorrista_seq.bdi
         elif socorrista_otm and hasattr(socorrista_otm, "bdi"):
             bdi = socorrista_otm.bdi
+
+        self.bdi_referencia = bdi
 
         self.desenhar_cenario(ambiente, bdi=bdi)
         self.desenhar_agentes(ambiente, drones, bombeiros, socorrista_seq, socorrista_otm)

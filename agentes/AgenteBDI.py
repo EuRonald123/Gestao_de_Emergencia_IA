@@ -9,6 +9,8 @@ class AgenteBDI:
         self.socorrista_sequencial = socorrista_sequencial
         self.socorrista_otimizador = socorrista_otimizador
         self.metricas = metricas
+        self.historico_mensagens = []
+        self.max_mensagens = 150
 
         # Crenças
         self.crencas = {
@@ -34,10 +36,16 @@ class AgenteBDI:
     #metodo pra receber as informações que o drone coletou
     def registrar_evento(self, tipo_evento, posicao):
         if tipo_evento == Tile.FOGO:
+            novo_evento = posicao not in self.crencas["fogos"]
             self.crencas["fogos"].add(posicao)
             self._enfileirar_incendio(posicao)
+            if novo_evento:
+                self.registrar_mensagem(f"Drone reportou estado FOGO na posicao {posicao} para o agente BDI")
         elif tipo_evento == Tile.VITIMA:
+            novo_evento = posicao not in self.crencas["vitimas"]
             self.crencas["vitimas"].add(posicao)
+            if novo_evento:
+                self.registrar_mensagem(f"Drone reportou estado VITIMA na posicao {posicao} para o agente BDI")
         self.processar_crencas()
 
     def processar_crencas(self):
@@ -81,6 +89,9 @@ class AgenteBDI:
         self.bombeiro_ocupado[bombeiro] = True
         self.planos_incendio[bombeiro] = fogo
         bombeiro.receber_ordem(fogo)
+        self.registrar_mensagem(
+            f"BDI mandou bombeiro {bombeiro.quadrante} para apagar fogo em {fogo}"
+        )
         self._remover_fogo_da_fila(fogo)
 
     def processar_resgates(self):
@@ -103,6 +114,7 @@ class AgenteBDI:
             fogo = self.planos_incendio.pop(bombeiro)
             self.crencas["fogos"].discard(fogo)
             self._remover_fogo_da_fila(fogo)
+            self.registrar_mensagem(f"Bombeiro {bombeiro.quadrante} apagou fogo em {fogo}")
         self.processar_crencas()
 
     def notificar_socorrista_concluiu(self, socorrista):
@@ -121,6 +133,7 @@ class AgenteBDI:
         self.vitimas_designadas.discard(vitima)
 
         if socorrista == self.socorrista_sequencial:
+            self.registrar_mensagem(f"Socorrista Sequencial resgatou vitima em {vitima}")
             #para metrica
             if self.metricas:
                 self.metricas.registrar_resgate(MetricasSimulacao.AGENTE_SEQUENCIAL)
@@ -129,6 +142,7 @@ class AgenteBDI:
             if not self.lista_resgate_sequencial:
                 self.socorrista_seq_ocupado = False
         elif socorrista == self.socorrista_otimizador:
+            self.registrar_mensagem(f"Socorrista Otimizador resgatou vitima em {vitima}")
             #aqui é para as metricas, ja salva o numero de vitimas resgatadas e tals
             if self.metricas:
                 self.metricas.registrar_resgate(MetricasSimulacao.AGENTE_OTIMIZADOR)
@@ -150,6 +164,9 @@ class AgenteBDI:
     def _designar_para_sequencial(self, vitima):
         self.lista_resgate_sequencial.append(vitima)
         self.vitimas_designadas.add(vitima)
+        self.registrar_mensagem(
+            f"BDI mandou vitima {vitima} para o agente Socorrista Sequencial"
+        )
         if self.socorrista_seq_ocupado:
             self.socorrista_sequencial.adicionar_vitima(vitima)
         else:
@@ -159,6 +176,9 @@ class AgenteBDI:
     def _designar_para_otimizador(self, vitima):
         self.lista_resgate_otimizador.append(vitima)
         self.vitimas_designadas.add(vitima)
+        self.registrar_mensagem(
+            f"BDI mandou vitima {vitima} para o agente Socorrista Otimizador"
+        )
         if self.socorrista_opt_ocupado:
             self.socorrista_otimizador.adicionar_vitima(vitima)
         else:
@@ -172,3 +192,16 @@ class AgenteBDI:
     def _remover_fogo_da_fila(self, fogo):
         if fogo in self.fila_incendios:
             self.fila_incendios.remove(fogo)
+
+    def registrar_mensagem(self, texto):
+        if not texto:
+            return
+
+        if self.metricas:
+            prefixo = f"[{self.metricas.tempo_segundos:04d}s] "
+        else:
+            prefixo = ""
+
+        self.historico_mensagens.append(prefixo + texto)
+        if len(self.historico_mensagens) > self.max_mensagens:
+            self.historico_mensagens = self.historico_mensagens[-self.max_mensagens:]

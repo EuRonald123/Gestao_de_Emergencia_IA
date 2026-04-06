@@ -62,7 +62,7 @@ class AgenteBaseadoEmUtilidade:
         elif self.estado == 'no_hospital':
             self.carregando_vitima = False
             self.bdi.registrar_resgate(self, self.vitima_carregada)
-            print(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
+            #(f"[{self.__class__.__name__}] Deixou a vítima no hospital.")
             if self.lista_vitimas:
                 self.lista_vitimas.sort(key=lambda v: self.distancia(v))
 
