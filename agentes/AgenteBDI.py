@@ -48,6 +48,8 @@ class AgenteBDI:
                 self.registrar_mensagem(f"Drone reportou estado VITIMA na posicao {posicao} para o agente BDI")
         self.processar_crencas()
 
+
+    #desejos/Objetivos manter o ambiente livre de fogo e resgatar todas as vitimas
     def processar_crencas(self):
         #atualiza os planos com base nas crenças
         self.processar_incendios()
@@ -140,6 +142,7 @@ class AgenteBDI:
             if vitima in self.lista_resgate_sequencial:
                 self.lista_resgate_sequencial.remove(vitima)
             if not self.lista_resgate_sequencial:
+                #aqui ja atualiza a crenca se o socorrista ta ou nao ocupado.
                 self.socorrista_seq_ocupado = False
         elif socorrista == self.socorrista_otimizador:
             self.registrar_mensagem(f"Socorrista Otimizador resgatou vitima em {vitima}")
