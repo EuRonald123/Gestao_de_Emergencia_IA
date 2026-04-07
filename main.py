@@ -73,7 +73,7 @@ def main():
 
 
     passos = 0
-    intervalo_geracao_eventos = 1
+    intervalo_geracao_eventos = 5
 
     ambiente.gerar_obstaculos(quantidade=15) 
 
