@@ -2,7 +2,7 @@ import pygame
 from utils.Tile import Tile
 
 class Visualizacao:
-    def __init__(self,ambiente, metricas=None, largura=900, altura=600, titulo="IA"):
+    def __init__(self,ambiente, metricas=None, largura=600, altura=600, titulo="IA"):
         self.ambiente = ambiente
         self.metricas = metricas
         self.largura = largura
@@ -11,16 +11,13 @@ class Visualizacao:
         self.cor_fundo = (34, 139, 34)
         self.cor_borda = (0, 0, 0)
         self.largura_borda = 4
-        self.largura_menu = 280
-        self.largura_cenario = self.largura - self.largura_menu
+        self.largura_menu = 0
+        self.largura_cenario = self.largura
         self.running = False
         self.tela = None
         self.posicoes_agentes = {} # Guarda as posições x,y de animação de cada agente ativo
         self.velocidade_animacao = 0.1 # Controle de velocidade (0.1 a 1.0)
         self.clock = pygame.time.Clock()
-        self.modo_painel = "metricas"
-        self.opcoes_painel = ["metricas", "mensagens"]
-        self.indice_opcao = 0
 
     def iniciar(self):
         pygame.init()
@@ -226,120 +223,6 @@ class Visualizacao:
             socorrista_otm_y = rect_y + (tam_celula_y - tam_agente_y) / 2
             self.tela.blit(self.img_socorrista_otm, (socorrista_otm_x, socorrista_otm_y))
 
-    def desenhar_menu_lateral(self):
-        bdi = None
-        if hasattr(self, "bdi_referencia"):
-            bdi = self.bdi_referencia
-
-        area_x = self.largura_cenario
-        area_largura = self.largura_menu
-        pygame.draw.rect(self.tela, (20, 20, 20), (area_x, 0, area_largura, self.altura))
-
-        fonte_titulo = pygame.font.SysFont("arial", 28, bold=True)
-        fonte_item = pygame.font.SysFont("arial", 22, bold=False)
-        fonte_texto = pygame.font.SysFont("arial", 20, bold=False)
-
-        #define o titulo da janela da met e mens
-        titulo = fonte_titulo.render("Metricas e Mensagens", True, (255, 255, 255))
-        
-        
-        self.tela.blit(titulo, (area_x + 20, 20))
-
-        for i, opcao in enumerate(self.opcoes_painel):
-            selecionado = i == self.indice_opcao
-            cor_fundo = (70, 70, 70) if selecionado else (40, 40, 40)
-            cor_texto = (255, 255, 255) if selecionado else (180, 180, 180)
-            caixa_y = 100 + i * 44
-            pygame.draw.rect(self.tela, cor_fundo, (area_x + 20, caixa_y, area_largura - 40, 34), border_radius=6)
-            texto = fonte_item.render(opcao.capitalize(), True, cor_texto)
-            self.tela.blit(texto, (area_x + 30, caixa_y + 6))
-
-        pygame.draw.line(self.tela, (90, 90, 90), (area_x + 20, 198), (area_x + area_largura - 20, 198), 1)
-
-        if self.modo_painel == "metricas":
-            self._desenhar_metricas(area_x, fonte_texto, fonte_item)
-        else:
-            self._desenhar_mensagens(area_x, fonte_texto, fonte_item, bdi)
-
-    def _quebrar_texto(self, texto, fonte, largura_max):
-        palavras = texto.split()
-        if not palavras:
-            return [""]
-
-        linhas = []
-        linha_atual = palavras[0]
-        for palavra in palavras[1:]:
-            tentativa = f"{linha_atual} {palavra}"
-            if fonte.size(tentativa)[0] <= largura_max:
-                linha_atual = tentativa
-            else:
-                linhas.append(linha_atual)
-                linha_atual = palavra
-
-        linhas.append(linha_atual)
-        return linhas
-
-    def _desenhar_mensagens(self, area_x, fonte_texto, fonte_item, bdi):
-        titulo = fonte_item.render("Mensagens", True, (255, 255, 255))
-        self.tela.blit(titulo, (area_x + 20, 218))
-
-        if not bdi:
-            sem_bdi = fonte_texto.render("Sem conexao com BDI", True, (230, 230, 230))
-            self.tela.blit(sem_bdi, (area_x + 20, 248))
-            return
-
-        mensagens = getattr(bdi, "historico_mensagens", [])
-        if not mensagens:
-            #sem_msg = fonte_texto.render("Sem mensagens ainda", True, (230, 230, 230))
-            #self.tela.blit(sem_msg, (area_x + 20, 248))
-            return
-
-        x_texto = area_x + 20
-        y_texto = 248
-        largura_texto = self.largura_menu - 40
-        limite_inferior = self.altura - 12
-
-        for msg in reversed(mensagens):
-            linhas = self._quebrar_texto(msg, fonte_texto, largura_texto)
-            altura_bloco = (len(linhas) * 20) + 8
-
-            if y_texto + altura_bloco > limite_inferior:
-                break
-
-            for linha in linhas:
-                render = fonte_texto.render(linha, True, (210, 210, 210))
-                self.tela.blit(render, (x_texto, y_texto))
-                y_texto += 20
-
-            y_texto += 8
-
-    def _desenhar_metricas(self, area_x, fonte_texto, fonte_item):
-        if not self.metricas:
-            sem_dados = fonte_texto.render("Sem metricas", True, (230, 230, 230))
-            self.tela.blit(sem_dados, (area_x + 20, 218))
-            return
-
-        snapshot = self.metricas.obter_snapshot()
-        tempo_segundos = snapshot.get("tempo_segundos", 0)
-        seq = snapshot.get("sequencial", {"qtd_vitimas": 0, "qtd_passos": 0})
-        otm = snapshot.get("otimizador", {"qtd_vitimas": 0, "qtd_passos": 0})
-
-        self.tela.blit(fonte_texto.render(f"tempo: {tempo_segundos}s", True, (210, 210, 210)), (area_x + 20, 218))
-
-        base_y = 248
-        
-        titulo_seq = fonte_item.render("Sequencial", True, (255, 255, 255))
-        self.tela.blit(titulo_seq, (area_x + 20, base_y))
-        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {seq['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, base_y + 30))
-        self.tela.blit(fonte_texto.render(f"qtd_passos: {seq['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, base_y + 58))
-        
-        
-        titulo_otm = fonte_item.render("Otimizador", True, (255, 255, 255))
-        self.tela.blit(titulo_otm, (area_x + 20, base_y + 140))
-        self.tela.blit(fonte_texto.render(f"qtd_vitimas: {otm['qtd_vitimas']}", True, (210, 210, 210)), (area_x + 20, base_y + 170))
-        self.tela.blit(fonte_texto.render(f"qtd_passos: {otm['qtd_passos']}", True, (210, 210, 210)), (area_x + 20, base_y + 198))
-        
-
     def atualizar(self, ambiente, drones=None, bombeiros=None, socorrista_seq=None, socorrista_otm=None):
         if not self.running:
             return False
@@ -349,13 +232,6 @@ class Visualizacao:
                 self.running = False
                 pygame.quit()
                 return False
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_UP:
-                    self.indice_opcao = (self.indice_opcao - 1) % len(self.opcoes_painel)
-                elif evento.key == pygame.K_DOWN:
-                    self.indice_opcao = (self.indice_opcao + 1) % len(self.opcoes_painel)
-                elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
-                    self.modo_painel = self.opcoes_painel[self.indice_opcao]
 
         bdi = None
         if socorrista_seq and hasattr(socorrista_seq, "bdi"):
@@ -363,11 +239,8 @@ class Visualizacao:
         elif socorrista_otm and hasattr(socorrista_otm, "bdi"):
             bdi = socorrista_otm.bdi
 
-        self.bdi_referencia = bdi
-
         self.desenhar_cenario(ambiente, bdi=bdi)
         self.desenhar_agentes(ambiente, drones, bombeiros, socorrista_seq, socorrista_otm)
-        self.desenhar_menu_lateral()
         pygame.display.flip()
         
         return True

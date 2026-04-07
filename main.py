@@ -15,7 +15,7 @@ def main():
     metricas = MetricasSimulacao()
 
     #cria a janela pygame para a visualizacao
-    visualizacao = Visualizacao(ambiente=ambiente, metricas=metricas)
+    visualizacao = Visualizacao(ambiente=ambiente)
     visualizacao.iniciar()
 
     #Auxiliar para pegar posiçoes
