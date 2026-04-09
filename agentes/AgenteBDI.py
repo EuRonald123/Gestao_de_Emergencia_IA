@@ -68,7 +68,7 @@ class AgenteBDI:
         if not bombeiros_disponiveis:
             return
 
-        # Prioriza incêndios do mesmo quadrante
+        # incendio quadrante
         ainda_disponiveis = []
         for bombeiro in bombeiros_disponiveis:
             q = bombeiro.quadrante
@@ -78,14 +78,16 @@ class AgenteBDI:
             else:
                 ainda_disponiveis.append(bombeiro)
 
-        # Em seguida, distribui quaisquer incêndios restantes
+        # Em seguida distribui quaisquer incsndios restante
         for bombeiro in ainda_disponiveis:
             for lista in pendentes_por_quadrante.values():
                 if lista:
                     fogo = lista.pop(0)
                     self.atribuir_bombeiro(bombeiro, fogo)
                     break
-
+    
+    
+    #Intencao
     def atribuir_bombeiro(self, bombeiro, fogo):
         # Envia um bombeiro para apagar o fogo 
         self.bombeiro_ocupado[bombeiro] = True
@@ -130,6 +132,8 @@ class AgenteBDI:
 
         self.processar_crencas()
 
+
+
     def registrar_resgate(self, socorrista, vitima):
         self.crencas["vitimas"].discard(vitima)
         self.vitimas_designadas.discard(vitima)
@@ -155,7 +159,9 @@ class AgenteBDI:
                 self.socorrista_opt_ocupado = False
 
         self.processar_crencas()
-
+        
+        
+    #intencao
     def _escolher_socorrista(self):
         if self.contador_distribuicao_vitimas % 2 == 0:
             escolha = 'seq'
@@ -175,6 +181,7 @@ class AgenteBDI:
         else:
             self.socorrista_seq_ocupado = True
             self.socorrista_sequencial.receber_lista(list(self.lista_resgate_sequencial))
+            
 
     def _designar_para_otimizador(self, vitima):
         self.lista_resgate_otimizador.append(vitima)

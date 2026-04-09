@@ -2,7 +2,7 @@ from utils.Tile import Tile
 import random
 
 class AgenteReativoSimples:
-    def __init__(self, ambiente,AgenteBDI, x=0, y=0):
+    def __init__(self, ambiente, AgenteBDI, x=0, y=0):
         self.estado_atual = None
         self.x = x
         self.y = y
@@ -12,8 +12,7 @@ class AgenteReativoSimples:
     def perceber(self):
         self.estado_atual = self.ambiente.obter_estado(self.x, self.y)
 
-    #Atualizado samerda
-    #acreditoq ue nao precise dassas strings de retorno, deixei apenas para a fase de testes e enquanto nao tiver interface grafica
+    
     def agir(self): 
         if self.estado_atual == Tile.FOGO:
             self.bdi.registrar_evento(Tile.FOGO, (self.x, self.y))
